@@ -25,7 +25,8 @@ package org.neo4j.internal.cypher.acceptance
 import org.neo4j.cypher.ExecutionEngineFunSuite
 import org.neo4j.cypher.internal.runtime.planDescription.InternalPlanDescription.Arguments.EstimatedRows
 import org.neo4j.cypher.internal.runtime.planDescription.InternalPlanDescription
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
 
 /**
   * Runs the 14 LDBC queries and checks so that the result is what is expected.
@@ -98,7 +99,7 @@ class LdbcAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSu
 
     val result =
     // when
-      executeWith(Configs.Interpreted, ldbcQuery, params = params)
+      executeWith(Configs.InterpretedAndSlotted, ldbcQuery, params = params)
 
     // then
     result should not be empty

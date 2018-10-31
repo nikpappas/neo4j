@@ -23,7 +23,8 @@
 package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher.ExecutionEngineFunSuite
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
 
 // Only put tests that assert on memory performance behaviour in this class
 class MemoryPerformanceAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSupport {
@@ -68,14 +69,14 @@ class MemoryPerformanceAcceptanceTest extends ExecutionEngineFunSuite with Cyphe
                   |RETURN ID(a), ID(b), type(r)""".stripMargin
 
     // when
-    executeWith(Configs.Interpreted + Configs.Morsel, query)
+    executeWith(Configs.InterpretedAndSlotted + Configs.Morsel, query)
     // then it should not fail or run out of memory
   }
 
   test("should unwind a long range without going OOM") {
     val expectedResult = 20000000
 
-    val result = executeWith(Configs.Interpreted, s"UNWIND range(1, $expectedResult) AS i RETURN count(*) AS c")
+    val result = executeWith(Configs.InterpretedAndSlotted, s"UNWIND range(1, $expectedResult) AS i RETURN count(*) AS c")
     result.columnAs[Long]("c").toList should equal(List(expectedResult))
   }
 
@@ -89,7 +90,7 @@ class MemoryPerformanceAcceptanceTest extends ExecutionEngineFunSuite with Cyphe
 
     //we cannot use executeWith here since this query will OOM in older releases and break the test
     for (runtime <- List("compiled", "interpreted", "slotted", "morsel")) {
-      innerExecuteDeprecated(s"CYPHER runtime=$runtime $query").toList should equal(List(
+      executeSingle(s"CYPHER runtime=$runtime $query").toList should equal(List(
         Map("x" -> 1),
         Map("x" -> 2),
         Map("x" -> 3),

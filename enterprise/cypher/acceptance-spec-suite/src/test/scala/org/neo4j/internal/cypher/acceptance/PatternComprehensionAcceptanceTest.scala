@@ -24,13 +24,15 @@ package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher.ExecutionEngineFunSuite
 import org.neo4j.cypher.internal.runtime.PathImpl
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport._
-import org.neo4j.internal.kernel.api.helpers.Indexes
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.ComparePlansWithAssertion
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.TestConfiguration
 import org.neo4j.kernel.impl.proc.Procedures
 
 class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSupport {
-  val expectedToSucceed = Configs.Interpreted - Configs.Version2_3
-  val expectedToSucceedRestricted = expectedToSucceed - Configs.AllRulePlanners
+  val expectedToSucceed = Configs.InterpretedAndSlotted - Configs.Version2_3
+  val expectedToSucceedRestricted = expectedToSucceed - Configs.RulePlanner
 
   test("pattern comprehension involving index seek on RHS") {
     graph.execute("CREATE CONSTRAINT ON (end:End) ASSERT end.id IS UNIQUE")
@@ -38,7 +40,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val ends = (0 to 1000).map(id => createLabeledNode(Map("id" -> id), "End"))
     ends.foreach(end => relate(start, end))
 
-    assertWithKernelTx(ktx => Indexes.awaitResampling(ktx.schemaRead(), 60 ))
+    resampleIndexes()
 
     val query =
       """
@@ -46,10 +48,10 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
         |RETURN [path IN (start)-->(:End {id: 0}) | last(nodes(path))] AS result
       """.stripMargin
 
-    val result = executeWith(Configs.Interpreted, query, planComparisonStrategy =
+    val result = executeWith(Configs.InterpretedAndSlotted, query, planComparisonStrategy =
         ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply")
                                            .withRHS(includeSomewhere.aPlan("NodeUniqueIndexSeek")),
-          expectPlansToFail = TestConfiguration(Versions.V2_3 -> Versions.V3_1, Planners.all, Runtimes.Default) + Configs.AllRulePlanners)
+          expectPlansToFail = Configs.Version2_3 + Configs.Version3_1)
     )
 
     result.toList should equal(List(Map("result" -> List(ends.head))))
@@ -93,7 +95,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
   test("bug found when binding to already existing variables") {
 
-    innerExecuteDeprecated(
+    executeSingle(
       """create
         |(_0:`Decision`  {`id`:"d1"}),
         |(_1:`FilterValue`  {`value`:500}),
@@ -232,7 +234,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     val result = executeWith(expectedToSucceedRestricted,
       "match (n:START) return n.x, [(n)-->(other) | other.x] as coll",
-      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.AllRulePlanners))
+      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.RulePlanner))
 
     result.toList should equal(List(
       Map("n.x" -> 1, "coll" -> Seq(5, 4, 3)),
@@ -257,7 +259,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     val result = executeWith(expectedToSucceedRestricted,
       "match (n:START) return n.x, [(n)-->(other) WHERE other.x % 2 = 0 | other.x] as coll",
-      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.AllRulePlanners))
+      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.RulePlanner))
 
     result.toList should equal(List(
       Map("n.x" -> 1, "coll" -> Seq(6, 4)),
@@ -272,7 +274,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
     relate(n1, n1, "x"->"B")
     val result = executeWith(expectedToSucceedRestricted,
       "match (n:START) return n.x, [(n)-[r]->(n) | r.x] as coll",
-      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.AllRulePlanners))
+      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.RulePlanner))
 
     result.toList should equal(List(
       Map("n.x" -> 1, "coll" -> Seq("B", "A"))
@@ -282,7 +284,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
   test("pattern comprehension built on a null yields null") {
     val result = executeWith(expectedToSucceed,
       "optional match (n:MISSING) return [(n)-->(n) | n.x] as coll",
-      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.AllRulePlanners))
+      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.RulePlanner))
     result.toList should equal(List(
       Map("coll" -> null)
     ))
@@ -306,7 +308,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
       """match (n:START)
         |where [(n)-->(other) | other.x] = [3,2,1]
         |return n""".stripMargin,
-      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.AllRulePlanners))
+      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.RulePlanner))
 
     result.toList should equal(List(
       Map("n" -> a)
@@ -368,7 +370,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     val result = executeWith(expectedToSucceed,
       "match (n:START) return count(*), [(n)-->(other) | other.x] as coll",
-      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.AllRulePlanners))
+      planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("RollUpApply"), expectPlansToFail = Configs.RulePlanner))
     result.toList should equal(List(
       Map("count(*)" -> 2, "coll" -> Seq(5, 4, 3))
     ))
@@ -495,7 +497,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
         | return c
       """.stripMargin
 
-    val result = executeWith(Configs.Interpreted - Configs.Before3_3AndRule, query)
+    val result = executeWith(Configs.InterpretedAndSlotted - Configs.Version2_3 - Configs.Version3_1, query)
     result.toList should equal(List.empty)
   }
 
@@ -512,9 +514,11 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
         | return c
       """.stripMargin
 
-    val result = executeWith(Configs.Interpreted - Configs.Before3_3AndRule, query)
+    val result = executeWith(Configs.InterpretedAndSlotted - Configs.Version2_3 - Configs.Version3_1, query)
     result.toList should equal(List(Map("c" -> node2), Map("c" -> node3)))
   }
+
+  private val configurationWithPatternExpressionFix = Configs.InterpretedAndSlotted - Configs.Version2_3 - Configs.Rule3_1 - TestConfiguration("3.4 runtime=slotted")
 
   test("nested pattern comprehension") {
     // given
@@ -529,7 +533,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
       RETURN [(a)-[:T1]->(b) | [(b)-[:T2]->(c) | c.prop ] ] as result
       """
 
-    val result = executeWith(Configs.Interpreted - Configs.Version2_3 - Configs.AllRulePlanners, query)
+    val result = executeWith(configurationWithPatternExpressionFix, query)
     result.toList should equal(List(Map("result" -> List(List(43, 42)))))
   }
 
@@ -552,7 +556,7 @@ class PatternComprehensionAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     graph.execute(setup)
 
-    val res = executeWith(Configs.Interpreted - Configs.Version2_3 - Configs.AllRulePlanners, query,
+    val res = executeWith(Configs.InterpretedAndSlotted - Configs.Version2_3 - Configs.RulePlanner, query,
       expectedDifferentResults = Configs.Version3_1)
     // If the (b)-->(:C) does not get correctly evaluated, this will be two instead
     res.toList should equal(List(Map("arraySize" -> 1)))

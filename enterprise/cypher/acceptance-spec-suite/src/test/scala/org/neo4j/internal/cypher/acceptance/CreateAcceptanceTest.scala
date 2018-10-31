@@ -24,12 +24,15 @@ package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher.internal.runtime.CreateTempFileTestSupport
 import org.neo4j.cypher.{ExecutionEngineFunSuite, QueryStatisticsTestSupport}
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport._
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Planners
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Runtimes
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Versions
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport.{Configs, TestConfiguration}
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.{Configs, TestConfiguration}
 
 class CreateAcceptanceTest extends ExecutionEngineFunSuite with QueryStatisticsTestSupport with CypherComparisonSupport
   with CreateTempFileTestSupport {
@@ -37,8 +40,8 @@ class CreateAcceptanceTest extends ExecutionEngineFunSuite with QueryStatisticsT
   private val BIG_TIMEOUT = 15 minutes
   private val BIG_N = 1000
   private val BIG_CREATE_CONFIGS =
-    TestConfiguration(Versions.Default, Planners.Default, Runtimes(Runtimes.Interpreted, Runtimes.Slotted)) +
-    TestConfiguration(Versions.V3_4, Planners.Default, Runtimes(Runtimes.Interpreted))
+    TestConfiguration(Versions.V3_5, Planners.all, Runtimes(Runtimes.Interpreted, Runtimes.Slotted)) +
+    TestConfiguration(Versions.V3_4, Planners.all, Runtimes(Runtimes.Interpreted))
 
   test("handle big CREATE clause") {
     var query = "CREATE (x)"
@@ -99,7 +102,7 @@ class CreateAcceptanceTest extends ExecutionEngineFunSuite with QueryStatisticsT
   test("handle null value in property map from parameter for create node") {
     val query = "CREATE (a {props}) RETURN a.foo, a.bar"
 
-    val result = executeWith(Configs.Interpreted - Configs.Version2_3, query, params = Map("props" -> Map("foo" -> null, "bar" -> "baz")))
+    val result = executeWith(Configs.InterpretedAndSlotted - Configs.Version2_3, query, params = Map("props" -> Map("foo" -> null, "bar" -> "baz")))
 
     result.toSet should equal(Set(Map("a.foo" -> null, "a.bar" -> "baz")))
     assertStats(result, nodesCreated = 1, propertiesWritten = 1)
@@ -127,7 +130,7 @@ class CreateAcceptanceTest extends ExecutionEngineFunSuite with QueryStatisticsT
   test("handle null value in property map from parameter") {
     val query = "CREATE (a {props})-[r:REL {props}]->() RETURN a.foo, a.bar, r.foo, r.bar"
 
-    val result = executeWith(Configs.Interpreted - Configs.Version2_3, query, params = Map("props" -> Map("foo" -> null, "bar" -> "baz")))
+    val result = executeWith(Configs.InterpretedAndSlotted - Configs.Version2_3, query, params = Map("props" -> Map("foo" -> null, "bar" -> "baz")))
 
     result.toSet should equal(Set(Map("a.foo" -> null, "a.bar" -> "baz", "r.foo" -> null, "r.bar" -> "baz")))
     assertStats(result, nodesCreated = 2, relationshipsCreated = 1, propertiesWritten = 2)
@@ -148,7 +151,7 @@ class CreateAcceptanceTest extends ExecutionEngineFunSuite with QueryStatisticsT
   test("should have bound node recognized after projection with WITH + CALL") {
     val query = "CREATE (a:L) WITH a CALL db.labels() YIELD label CREATE (b) CREATE (a)<-[:T]-(b)"
 
-    val result = executeWith(Configs.UpdateConf - Configs.AllRulePlanners, query)
+    val result = executeWith(Configs.UpdateConf - Configs.RulePlanner, query)
 
     assertStats(result, nodesCreated = 2, relationshipsCreated = 1, labelsAdded = 1)
   }
@@ -223,7 +226,7 @@ class CreateAcceptanceTest extends ExecutionEngineFunSuite with QueryStatisticsT
   test("should throw on CREATE relationship if start-point is missing") {
     graph.execute("CREATE (a), (b)")
 
-    val config = Configs.AbsolutelyAll - Configs.Compiled - Configs.Cost2_3
+    val config = Configs.All - Configs.Compiled - Configs.Cost2_3
 
     failWithError(config, """MATCH (a), (b)
                             |WHERE id(a)=0 AND id(b)=1
@@ -237,7 +240,7 @@ class CreateAcceptanceTest extends ExecutionEngineFunSuite with QueryStatisticsT
   test("should throw on CREATE relationship if end-point is missing") {
     graph.execute("CREATE (a), (b)")
 
-    val config = Configs.AbsolutelyAll - Configs.Compiled - Configs.Cost2_3
+    val config = Configs.All - Configs.Compiled - Configs.Cost2_3
 
     failWithError(config, """MATCH (a), (b)
                             |WHERE id(a)=0 AND id(b)=1

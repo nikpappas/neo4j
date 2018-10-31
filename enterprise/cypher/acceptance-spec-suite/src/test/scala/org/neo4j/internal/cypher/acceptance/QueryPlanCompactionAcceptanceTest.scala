@@ -23,13 +23,15 @@
 package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher.{ExecutionEngineFunSuite, QueryStatisticsTestSupport}
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport._
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.ComparePlansWithAssertion
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
 import org.opencypher.v9_0.util.test_helpers.WindowsStringSafe
 
 class QueryPlanCompactionAcceptanceTest extends ExecutionEngineFunSuite with QueryStatisticsTestSupport
   with CypherComparisonSupport {
 
-  private val expectedToSucceed = Configs.Interpreted - Configs.Cost2_3
+  private val expectedToSucceed = Configs.InterpretedAndSlotted - Configs.Cost2_3
 
   val shouldCompact = ComparePlansWithAssertion(_.toString.split("\\n").exists(line => line.contains("Create") && line.contains("...")) should be(true))
   val shouldNotCompact = ComparePlansWithAssertion(_.toString.split("\\n").exists(line => line.contains("Create") && line.contains("...")) should be(false))

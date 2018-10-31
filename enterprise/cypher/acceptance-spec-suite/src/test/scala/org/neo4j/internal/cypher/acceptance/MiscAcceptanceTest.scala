@@ -23,7 +23,8 @@
 package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher.ExecutionEngineFunSuite
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport._
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
 
 class MiscAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSupport {
 
@@ -36,7 +37,7 @@ class MiscAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSu
       WHERE i <> j
       RETURN i, j"""
 
-    val result = executeWith(Configs.Interpreted + Configs.Morsel, query)
+    val result = executeWith(Configs.InterpretedAndSlotted + Configs.Morsel, query)
     result.toList should equal(List(Map("j" -> 1, "i" -> 0), Map("j" -> 0, "i" -> 1)))
   }
 
@@ -49,7 +50,7 @@ class MiscAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSu
         |ORDER BY y
       """.stripMargin
 
-    val result = executeWith(Configs.All, query, expectedDifferentResults = Configs.Before3_3AndRule)
+    val result = executeWith(Configs.All, query, expectedDifferentResults = Configs.Version2_3 + Configs.Version3_1)
     result.toList should equal(List(Map("y" -> 1, "y3" -> 3), Map("y" -> 1, "y3" -> 4), Map("y" -> 2, "y3" -> 3), Map("y" -> 2, "y3" -> 4)))
   }
 
@@ -101,7 +102,7 @@ class MiscAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSu
     // If we would use Ints for storing the limit, then we would end up with "limit 0"
     // thus, if we actually return the two nodes, then it proves that we used a long
     val query = "MATCH (n) RETURN n LIMIT " + limit
-    val worksCorrectlyInConfig = Configs.Version3_5 + Configs.Version3_4 - Configs.AllRulePlanners
+    val worksCorrectlyInConfig = Configs.Version3_5 + Configs.Version3_4
     // the query will work in all configs, but only have the correct result in those specified configs
     val result = executeWith(Configs.All, query, Configs.All - worksCorrectlyInConfig)
     result.toList should equal(List(Map("n" -> a), Map("n" -> b)))
