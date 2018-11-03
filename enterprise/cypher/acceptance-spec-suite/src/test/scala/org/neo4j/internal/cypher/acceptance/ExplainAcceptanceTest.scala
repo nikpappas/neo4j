@@ -24,7 +24,8 @@ package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher.ExecutionEngineFunSuite
 import org.neo4j.cypher.internal.runtime.{ExplainMode, NormalMode}
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
 
 class ExplainAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSupport {
 
@@ -72,7 +73,7 @@ class ExplainAcceptanceTest extends ExecutionEngineFunSuite with CypherCompariso
                   |
                   |RETURN count(*), count(distinct bknEnd), avg(size(bookings)),avg(size(perDays));""".stripMargin
 
-    val result = executeWith(Configs.Interpreted, query)
+    val result = executeWith(Configs.InterpretedAndSlotted, query)
     val plan = result.executionPlanDescription().toString
 
     plan.toString should include("NestedPlanExpression(VarExpand-Argument)")

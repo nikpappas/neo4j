@@ -23,13 +23,14 @@
 package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher.ExecutionEngineFunSuite
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport._
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
 import org.neo4j.values.storable.DurationValue
 
 
 class AggregationAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSupport {
 
-  private val INTERPRETED_33_35_NO_RULE = Configs.Interpreted - Configs.Version3_1 - Configs.Version2_3 - Configs.AllRulePlanners
+  private val INTERPRETED_34_35 = Configs.InterpretedAndSlotted - Configs.Version3_1 - Configs.Version2_3
 
   // Non-deterministic query -- needs TCK design
   test("should aggregate using as grouping key expressions using variables in scope and nothing else") {
@@ -48,8 +49,8 @@ class AggregationAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
                    |RETURN id(selectedFriendship) AS friendshipId, selectedFriendship.propFive AS propertyValue""".stripMargin
     val params = Map("param" -> 3)
 
-    val result1 = executeWith(Configs.Interpreted, query1, params = params).toList
-    val result2 = executeWith(Configs.Interpreted, query2, params = params).toList
+    val result1 = executeWith(Configs.InterpretedAndSlotted, query1, params = params).toList
+    val result2 = executeWith(Configs.InterpretedAndSlotted, query2, params = params).toList
 
     result1.size should equal(result2.size)
   }
@@ -185,7 +186,7 @@ class AggregationAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
     val node2 = createNode(Map("prop" -> 2))
     val query = "MATCH (a) WITH DISTINCT a SKIP 1 LIMIT 1 RETURN count(a)"
 
-    val result = executeWith(Configs.Interpreted, query)
+    val result = executeWith(Configs.InterpretedAndSlotted, query)
 
     result.toList should equal(List(Map("count(a)" -> 1)))
   }
@@ -196,7 +197,7 @@ class AggregationAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
     val r1 = relate(node1, node2)
 
     val query = "MATCH (a)-[r]-(b) RETURN a, r, b, count(a) ORDER BY a, r, b"
-    val result = executeWith(Configs.All - Configs.Before3_3AndRule, query) // Neo4j version <= 3.1 cannot order by nodes
+    val result = executeWith(Configs.All - Configs.Version2_3 - Configs.Version3_1, query) // Neo4j version <= 3.1 cannot order by nodes
     result.toList should equal(List(
       Map("a" -> node1, "r" -> r1, "b" -> node2, "count(a)" -> 1),
       Map("a" -> node2, "r" -> r1, "b" -> node1, "count(a)" -> 1)
@@ -209,7 +210,7 @@ class AggregationAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
     val r1 = relate(node1, node2)
 
     val query = "MATCH (a)-[r]-(b) RETURN a, r, b, a.prop as s, count(a) ORDER BY a, r, b, s"
-    val result = executeWith(Configs.All - Configs.Before3_3AndRule, query) // Neo4j version <= 3.1 cannot order by nodes
+    val result = executeWith(Configs.All - Configs.Version2_3 - Configs.Version3_1, query) // Neo4j version <= 3.1 cannot order by nodes
     result.toList should equal(List(
       Map("a" -> node1, "r" -> r1, "b" -> node2, "s" -> "alice", "count(a)" -> 1),
       Map("a" -> node2, "r" -> r1, "b" -> node1, "s" -> "bob", "count(a)" -> 1)
@@ -231,7 +232,7 @@ class AggregationAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
 
   test("Should sum durations") {
     val query = "UNWIND [duration('PT10S'), duration('P1D'), duration('PT30.5S')] as x RETURN sum(x) AS length"
-    executeWith(INTERPRETED_33_35_NO_RULE, query).toList should equal(List(Map("length" -> DurationValue.duration(0,1,40,500000000))))
+    executeWith(INTERPRETED_34_35, query).toList should equal(List(Map("length" -> DurationValue.duration(0,1,40,500000000))))
   }
 
   test("Should sum durations from stored nodes") {
@@ -240,17 +241,17 @@ class AggregationAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
     createNode(Map("d" -> DurationValue.duration(0,0,30,500000000)))
 
     val query = "MATCH (n) RETURN sum(n.d) AS length"
-    executeWith(INTERPRETED_33_35_NO_RULE, query).toList should equal(List(Map("length" -> DurationValue.duration(0,1,40,500000000))))
+    executeWith(INTERPRETED_34_35, query).toList should equal(List(Map("length" -> DurationValue.duration(0,1,40,500000000))))
   }
 
   test("Should not sum durations and numbers together") {
     val query = "UNWIND [duration('PT10S'), duration('P1D'), duration('PT30.5S'), 90] as x RETURN sum(x) AS length"
-    failWithError(INTERPRETED_33_35_NO_RULE + Configs.Procs, query, Seq("cannot mix number and durations"))
+    failWithError(INTERPRETED_34_35, query, Seq("cannot mix number and durations"))
   }
 
   test("Should avg durations") {
     val query = "UNWIND [duration('PT10S'), duration('P3D'), duration('PT20.6S')] as x RETURN avg(x) AS length"
-    executeWith(INTERPRETED_33_35_NO_RULE, query).toList should equal(List(Map("length" -> DurationValue.duration(0,1,10,200000000))))
+    executeWith(INTERPRETED_34_35, query).toList should equal(List(Map("length" -> DurationValue.duration(0,1,10,200000000))))
   }
 
   test("Should avg durations from stored nodes") {
@@ -259,12 +260,12 @@ class AggregationAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
     createNode(Map("d" -> DurationValue.duration(0,0,20,600000000)))
 
     val query = "MATCH (n) RETURN avg(n.d) AS length"
-    executeWith(INTERPRETED_33_35_NO_RULE, query).toList should equal(List(Map("length" -> DurationValue.duration(0,1,10,200000000))))
+    executeWith(INTERPRETED_34_35, query).toList should equal(List(Map("length" -> DurationValue.duration(0,1,10,200000000))))
   }
 
   test("Should not avg durations and numbers together") {
     val query = "UNWIND [duration('PT10S'), duration('P1D'), duration('PT30.5S'), 90] as x RETURN avg(x) AS length"
-    failWithError(INTERPRETED_33_35_NO_RULE + Configs.Procs, query, Seq("cannot mix number and durations"))
+    failWithError(INTERPRETED_34_35, query, Seq("cannot mix number and durations"))
   }
 
   test("Aggregations should keep LHS order") {
@@ -272,7 +273,7 @@ class AggregationAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
     val query = "UNWIND [1, 2, 2, 3, 3, 4, 5, 5, 5, 6, 7, 8, 9, 99] AS n WITH n ORDER BY n RETURN n, count(n)"
     val result = executeWith(Configs.All, query,
       // The order of aggregation has been changed in 3.5
-      expectedDifferentResults = Configs.Version3_1 + Configs.Version2_3 + Configs.AllRulePlanners)
+      expectedDifferentResults = Configs.Version3_1 + Configs.Version2_3)
 
     result.toList should be(List(
       Map("n" -> 1, "count(n)" -> 1),

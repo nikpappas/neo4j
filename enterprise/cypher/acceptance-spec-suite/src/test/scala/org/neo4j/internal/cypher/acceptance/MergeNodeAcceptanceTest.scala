@@ -24,7 +24,8 @@ package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher.{ExecutionEngineFunSuite, QueryStatisticsTestSupport}
 import org.neo4j.graphdb.Relationship
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport._
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
 
 class MergeNodeAcceptanceTest extends ExecutionEngineFunSuite with QueryStatisticsTestSupport
   with CypherComparisonSupport {
@@ -95,7 +96,7 @@ class MergeNodeAcceptanceTest extends ExecutionEngineFunSuite with QueryStatisti
         |MERGE (a)-[r:X]->()
       """.stripMargin
 
-    failWithError(Configs.AbsolutelyAll - Configs.Compiled - Configs.Cost2_3, query, Seq(
+    failWithError(Configs.All - Configs.Compiled - Configs.Cost2_3, query, Seq(
       "Expected to find a node, but found instead: null",
       "Expected to find a node at a but found nothing Some(null)",
       "Failed to create relationship `r`, node `a` is missing. " +

@@ -23,8 +23,11 @@
 package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher.ExecutionEngineFunSuite
-import org.neo4j.cypher.internal.helpers.{NodeKeyConstraintCreator, UniquenessConstraintCreator}
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport.{ComparePlansWithAssertion, Configs}
+import org.neo4j.cypher.internal.helpers.NodeKeyConstraintCreator
+import org.neo4j.cypher.internal.helpers.UniquenessConstraintCreator
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.ComparePlansWithAssertion
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
 
 class UniqueIndexAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSupport {
 
@@ -118,7 +121,7 @@ class UniqueIndexAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
           //THEN
           plan should includeSomewhere.aPlan("NodeUniqueIndexSeek")
           plan shouldNot includeSomewhere.aPlan("NodeUniqueIndexSeek(Locking)")
-        }, Configs.AllRulePlanners),
+        }, Configs.RulePlanner),
         params = Map("coll" -> List("Jacob")))
     }
 
@@ -130,12 +133,12 @@ class UniqueIndexAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
       graph should haveConstraints(s"${constraintCreator.typeName}:Person(name)")
 
       //WHEN
-      executeWith(Configs.Interpreted - Configs.Cost2_3, "MERGE (n:Person {name: 'Andres'}) RETURN n.name",
+      executeWith(Configs.InterpretedAndSlotted - Configs.Cost2_3, "MERGE (n:Person {name: 'Andres'}) RETURN n.name",
         planComparisonStrategy = ComparePlansWithAssertion((plan) => {
           //THEN
           plan shouldNot includeSomewhere.aPlan("NodeIndexSeek")
           plan should includeSomewhere.aPlan("NodeUniqueIndexSeek(Locking)")
-        }, Configs.AllRulePlanners))
+        }, Configs.RulePlanner))
     }
 
     test(s"$constraintCreator: should use locking unique index for merge relationship queries") {
@@ -146,14 +149,14 @@ class UniqueIndexAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
       graph should haveConstraints(s"${constraintCreator.typeName}:Person(name)")
 
       //WHEN
-      executeWith(Configs.Interpreted - Configs.Cost2_3,
+      executeWith(Configs.InterpretedAndSlotted - Configs.Cost2_3,
         "PROFILE MATCH (n:Person {name: 'Andres'}) MERGE (n)-[:KNOWS]->(m:Person {name: 'Maria'}) RETURN n.name",
         planComparisonStrategy = ComparePlansWithAssertion((plan) => {
           // THEN
           plan shouldNot includeSomewhere.aPlan("NodeIndexSeek")
           plan shouldNot includeSomewhere.aPlan("NodeByLabelScan")
           plan should includeSomewhere.aPlan("NodeUniqueIndexSeek(Locking)")
-        }, Configs.AllRulePlanners + Configs.Cost3_1))
+        }, Configs.RulePlanner + Configs.Cost3_1))
     }
 
     test(s"$constraintCreator: should use locking unique index for mixed read write queries") {
@@ -165,12 +168,12 @@ class UniqueIndexAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
 
       val query = "MATCH (n:Person)-->() USING INDEX n:Person(name) WHERE n.name IN {coll} SET n:Foo RETURN n.name"
       //WHEN
-      executeWith(Configs.Interpreted - Configs.Cost2_3, query, params = Map("coll" -> List("Jacob")),
+      executeWith(Configs.InterpretedAndSlotted - Configs.Cost2_3, query, params = Map("coll" -> List("Jacob")),
         planComparisonStrategy = ComparePlansWithAssertion((plan) => {
           //THEN
           plan shouldNot includeSomewhere.aPlan("NodeIndexSeek")
           plan should includeSomewhere.aPlan("NodeUniqueIndexSeek(Locking)")
-        }, Configs.AllRulePlanners))
+        }, Configs.RulePlanner))
     }
   }
 
@@ -183,11 +186,11 @@ class UniqueIndexAcceptanceTest extends ExecutionEngineFunSuite with CypherCompa
 
     val query = "MATCH (n:Person) WHERE n.name = null SET n:FOO"
     //WHEN
-    executeWith(Configs.Interpreted - Configs.Cost2_3, query, planComparisonStrategy = ComparePlansWithAssertion((plan) => {
+    executeWith(Configs.InterpretedAndSlotted - Configs.Cost2_3, query, planComparisonStrategy = ComparePlansWithAssertion((plan) => {
       //THEN
       plan shouldNot includeSomewhere.aPlan("NodeIndexSeek")
       plan shouldNot includeSomewhere.aPlan("NodeByLabelScan")
       plan should includeSomewhere.aPlan("NodeUniqueIndexSeek(Locking)")
-    }, Configs.AllRulePlanners + Configs.Cost3_1))
+    }, Configs.RulePlanner + Configs.Cost3_1))
   }
 }

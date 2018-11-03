@@ -26,7 +26,9 @@ import org.neo4j.cypher.ExecutionEngineFunSuite
 import org.neo4j.cypher.SyntaxException
 import org.neo4j.cypher.internal.runtime.interpreted.pipes.IndexSeekByRange
 import org.neo4j.cypher.internal.runtime.interpreted.pipes.UniqueIndexSeekByRange
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport._
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.ComparePlansWithAssertion
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
 
 /**
   * These tests are testing the actual index implementation, thus they should all check the actual result.
@@ -43,12 +45,12 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     graph.createIndex("Person", "age")
 
     // When
-    val result = executeWith(Configs.Interpreted,
+    val result = executeWith(Configs.InterpretedAndSlotted,
                              "MATCH (p:Person) USING INDEX p:Person(age) WHERE p.age > 5987523281782486378 RETURN p",
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.toList should equal(List(Map("p" -> person)))
@@ -62,12 +64,12 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     graph.createIndex("Person", "age")
 
     // When
-    val result = executeWith(Configs.Interpreted,
+    val result = executeWith(Configs.InterpretedAndSlotted,
                              "MATCH (p:Person) USING INDEX p:Person(age) WHERE p.age > 5987523281782486379 RETURN p",
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result should be(empty)
@@ -89,11 +91,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     val query = "MATCH (l:Location) WHERE l.name STARTS WITH 'Lon' RETURN l"
 
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     result.toList should equal(List(Map("l" -> london)))
   }
@@ -134,11 +136,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     val query = "MATCH (l:Location) WHERE l.name STARTS WITH 'Lon' RETURN l"
 
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     result.toList should equal(List(Map("l" -> london)))
   }
@@ -161,7 +163,7 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     graph.createIndex("Address", "prop")
 
     // Add an uninteresting predicate using a parameter to stop autoparameterization from happening
-    val result = executeWith(Configs.Interpreted, """MATCH (a:Address)
+    val result = executeWith(Configs.InterpretedAndSlotted, """MATCH (a:Address)
                                                     |WHERE 43 = {apa}
                                                     |  AND a.prop STARTS WITH 'w'
                                                     |  AND a.prop STARTS WITH 'www'
@@ -169,7 +171,7 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners), params = Map("apa" -> 43))
+                             }, Configs.RulePlanner), params = Map("apa" -> 43))
 
     result.toSet should equal(Set(Map("a" -> a1), Map("a" -> a2)))
     result.executionPlanDescription().toString should include("prop STARTS WITH \"www\"")
@@ -191,11 +193,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     graph.createIndex("Address", "prop")
 
-    val result = executeWith(Configs.Interpreted, "MATCH (a:Address) WHERE a.prop STARTS WITH 'www' RETURN a",
+    val result = executeWith(Configs.InterpretedAndSlotted, "MATCH (a:Address) WHERE a.prop STARTS WITH 'www' RETURN a",
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     result.toSet should equal(Set(Map("a" -> a1), Map("a" -> a2)))
   }
@@ -217,11 +219,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     graph.createConstraint("Address", "prop")
 
-    val result = executeWith(Configs.Interpreted, "MATCH (a:Address) WHERE a.prop STARTS WITH 'www' RETURN a",
+    val result = executeWith(Configs.InterpretedAndSlotted, "MATCH (a:Address) WHERE a.prop STARTS WITH 'www' RETURN a",
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(UniqueIndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     result.toSet should equal(Set(Map("a" -> a1), Map("a" -> a2)))
   }
@@ -249,11 +251,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop < 10 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.toList should equal(List(
@@ -287,11 +289,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE NOT n.prop >= 10 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.toList should
@@ -327,11 +329,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop <= 10 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.toList should
@@ -369,11 +371,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE NOT n.prop > 10 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.toList should equal(List(
@@ -410,11 +412,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop > 5 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     val values = result.columnAs[Number]("prop").toSeq
@@ -447,11 +449,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE NOT n.prop <= 5 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     val values = result.columnAs[Number]("prop").toSeq
@@ -484,11 +486,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop >= 5 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     val values = result.columnAs[Number]("prop").toSeq
@@ -521,11 +523,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE NOT n.prop < 5 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     val values = result.columnAs[Number]("prop").toSeq
@@ -556,11 +558,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop < '15' RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.columnAs[String]("prop").toList should equal(Seq("", "-5", "0", "10", "14whatever"))
@@ -588,11 +590,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop <= '15' RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.columnAs[String]("prop").toSet should equal(Set("", "-5", "0", "10", "15", "14whatever"))
@@ -622,11 +624,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop > '15' RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.columnAs[String]("prop").toList should equal(Seq(smallValue, "5", "5"))
@@ -656,11 +658,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop >= '15' RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.columnAs[String]("prop").toList should equal(Seq("15", smallValue, "5", "5"))
@@ -689,11 +691,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop >= '15' AND n.prop2 > 5 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
 
@@ -718,11 +720,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop <= 10 AND n.prop > 10 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result should be(empty)
@@ -746,11 +748,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop <= null RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result should be(empty)
@@ -780,11 +782,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop >=5 AND n.prop < 10 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.toList should equal(List(
@@ -819,11 +821,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop >= 0 AND n.prop >=5 AND n.prop < 10 AND n.prop < 100 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.toList should equal(List(
@@ -855,11 +857,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop < '15' AND n.prop >= '15' RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result should be(empty)
@@ -887,11 +889,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop < null RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result should be(empty)
@@ -921,11 +923,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop >= '10' AND n.prop < '15' RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.toList should equal(List(
@@ -958,11 +960,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop > '1' AND n.prop >= '10' AND n.prop < '15' AND n.prop <= '14whatever' RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result.toList should equal(List(
@@ -984,11 +986,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop > '1' AND n.prop > 10 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     result should be(empty)
@@ -1007,7 +1009,7 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     val query = "MATCH (n:Label) WHERE n.prop > '1' AND n.prop > 10 RETURN n.prop AS prop"
 
     // When
-    val result = executeWith(Configs.Interpreted, query)
+    val result = executeWith(Configs.InterpretedAndSlotted, query)
 
     // Then
     result.columnAs[String]("prop").toList should equal(List.empty)
@@ -1027,11 +1029,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     val query = "MATCH (n:Label) WHERE n.prop >= '1' AND n.prop > 10 RETURN n.prop AS prop"
 
-    executeWith(Configs.Interpreted, s"EXPLAIN $query",
+    executeWith(Configs.InterpretedAndSlotted, s"EXPLAIN $query",
                 planComparisonStrategy = ComparePlansWithAssertion(plan => {
                   //THEN
                   plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                }, Configs.AllRulePlanners))
+                }, Configs.RulePlanner))
 
     an[IllegalArgumentException] should be thrownBy {
       executeWith(Configs.Empty, query).toList
@@ -1055,7 +1057,7 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     val query = "MATCH (n:Label) WHERE n.prop >= {param} RETURN n.prop AS prop"
 
-    val result = executeWith(Configs.Interpreted - Configs.Before3_3AndRule, query,
+    val result = executeWith(Configs.InterpretedAndSlotted - Configs.Version2_3 - Configs.Version3_1, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
@@ -1072,11 +1074,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     val query = "MATCH (n:Label) WHERE n.prop >= {param} AND n.prop < null RETURN n.prop AS prop"
 
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners), params = Map("param" -> Array[Int](1, 2, 3)))
+                             }, Configs.RulePlanner), params = Map("param" -> Array[Int](1, 2, 3)))
 
     result should be(empty)
   }
@@ -1096,11 +1098,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     val query = "MATCH (n:Label) WHERE n.prop >= {param} RETURN n.prop AS prop"
 
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners), params = Map("param" -> matchingChar))
+                             }, Configs.RulePlanner), params = Map("param" -> matchingChar))
 
     result.toSet should equal(Set(Map("prop" -> matchingChar), Map("prop" -> matchingChar.toString)))
   }
@@ -1120,11 +1122,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     val query = "MATCH (n:Label) WHERE n.prop >= {param} RETURN n.prop AS prop"
 
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners), params = Map("param" -> matchingChar.toString))
+                             }, Configs.RulePlanner), params = Map("param" -> matchingChar.toString))
 
     result.toSet should equal(Set(Map("prop" -> matchingChar), Map("prop" -> matchingChar.toString)))
   }
@@ -1142,7 +1144,7 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     result.toList should equal(List(Map("n.prop" -> 1), Map("n.prop" -> 5)))
   }
@@ -1153,7 +1155,7 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     // When
     val query = "MATCH (a)-->(b:Label) WHERE b.prop > a.prop RETURN count(a) as c"
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan shouldNot includeSomewhere.aPlan(IndexSeekByRange.name)
@@ -1169,7 +1171,7 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     // When
     val query = "WITH 200 AS x MATCH (b:Label) WHERE b.prop > x RETURN count(b) as c"
-    val result = executeWith(Configs.Interpreted, query)
+    val result = executeWith(Configs.InterpretedAndSlotted, query)
 
     // Then
     result.executionPlanDescription() should includeSomewhere.aPlan(IndexSeekByRange.name)
@@ -1182,7 +1184,7 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     // When
     val query = "MATCH (a)-->(b:Label) WHERE b.prop <= a.prop RETURN count(a) as c"
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion((plan) => {
                                //THEN
                                plan shouldNot includeSomewhere.aPlan(IndexSeekByRange.name)
@@ -1198,7 +1200,7 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     // When
     val query = "MATCH (a)-->(b:Label) WHERE b.prop >= b.prop RETURN count(a) as c"
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan shouldNot includeSomewhere.aPlan(IndexSeekByRange.name)
@@ -1214,11 +1216,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     // When
     val query = s"MATCH (a)-->(b:Label) WHERE ${size / 2} < b.prop RETURN count(a) as c"
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     assert(size > 20)
@@ -1231,11 +1233,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
 
     // When
     val query = s"MATCH (a)-->(b:Label) WHERE 10 < b.prop <= ${size - 10} RETURN count(a) as c"
-    val result = executeWith(Configs.Interpreted, query,
+    val result = executeWith(Configs.InterpretedAndSlotted, query,
                              planComparisonStrategy = ComparePlansWithAssertion(plan => {
                                //THEN
                                plan should includeSomewhere.aPlan(IndexSeekByRange.name)
-                             }, Configs.AllRulePlanners))
+                             }, Configs.RulePlanner))
 
     // Then
     assert(size > 20)
@@ -1282,11 +1284,11 @@ class NodeIndexSeekByRangeAcceptanceTest extends ExecutionEngineFunSuite with Cy
     Thread.sleep(1000)
 
     // Then
-    executeWith(Configs.Interpreted, "MATCH (n:L) WHERE n.prop2 > 1 AND n.prop1 > 1 RETURN n.prop1",
+    executeWith(Configs.InterpretedAndSlotted, "MATCH (n:L) WHERE n.prop2 > 1 AND n.prop1 > 1 RETURN n.prop1",
                 planComparisonStrategy = ComparePlansWithAssertion(plan => {
                   //THEN
                   plan should includeSomewhere.aPlan(IndexSeekByRange.name).containingVariables("n", "cached[n.prop1]")
-                }, Configs.OldAndRule))
+                }, Configs.Version2_3 + Configs.Version3_1 + Configs.Version3_4))
   }
 
   private def createTestModelBigEnoughToConsiderPickingIndexSeek: Int = {

@@ -24,7 +24,9 @@ package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher.ExecutionEngineFunSuite
 import org.neo4j.graphdb.Node
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport._
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.ComparePlansWithAssertion
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
 
 class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSupport {
   test("test that index seek is planned on the RHS using information from the LHS") {
@@ -44,7 +46,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
 
     // when
     val result = executeWith(
-      Configs.Interpreted,
+      Configs.InterpretedAndSlotted,
       "MATCH (a:A)-->(b), (c:C) WHERE b.id = c.id AND a.id = 42 RETURN count(*)",
       planComparisonStrategy = ComparePlansWithAssertion(planDescription => {
         planDescription should includeSomewhere.aPlan("Apply").withRHS(aPlan("NodeIndexSeek"))
@@ -52,7 +54,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
           includeSomewhere.aPlan("CartesianProduct") or
           includeSomewhere.aPlan("NodeByLabelScan") or
           includeSomewhere.aPlan("Filter"))
-      }, expectPlansToFail = Configs.AllRulePlanners + Configs.Cost2_3))
+      }, expectPlansToFail = Configs.RulePlanner + Configs.Cost2_3))
 
     result.toList should equal(List(Map("count(*)" -> 3)))
   }
@@ -73,7 +75,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
     graph.createIndex("C", "id")
 
     // when
-    val result = executeWith(Configs.Interpreted,
+    val result = executeWith(Configs.InterpretedAndSlotted,
       "MATCH (a:A)-->(b), (c:C) WHERE b.id = c.id AND a.id = 42 OPTIONAL MATCH (a)-[:T]->() RETURN count(*)",
       planComparisonStrategy = ComparePlansWithAssertion(planDescription => {
         planDescription should includeSomewhere.aPlan("Apply").withRHS(aPlan("NodeIndexSeek"))
@@ -81,7 +83,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
           includeSomewhere.aPlan("CartesianProduct") or
           includeSomewhere.aPlan("NodeByLabelScan") or
           includeSomewhere.aPlan("Filter"))
-      }, expectPlansToFail = Configs.AllRulePlanners + Configs.Cost2_3))
+      }, expectPlansToFail = Configs.RulePlanner + Configs.Cost2_3))
 
     result.toList should equal(List(Map("count(*)" -> 3)))
   }
@@ -100,7 +102,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
       """.stripMargin
 
     val result = executeWith(Configs.All - Configs.Version2_3, query,
-      planComparisonStrategy = ComparePlansWithAssertion( _ should includeSomewhere.atLeastNTimes(1, aPlan("NodeIndexSeek").containingVariables("f")), expectPlansToFail = Configs.AllRulePlanners))
+      planComparisonStrategy = ComparePlansWithAssertion( _ should includeSomewhere.atLeastNTimes(1, aPlan("NodeIndexSeek").containingVariables("f")), expectPlansToFail = Configs.RulePlanner))
 
     result.columnAs[Node]("f").toSet should equal(Set(nodes(122),nodes(123)))
   }
@@ -117,7 +119,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
         | RETURN f
       """.stripMargin
     val result = executeWith(Configs.All, query,
-      planComparisonStrategy = ComparePlansWithAssertion( _ should includeSomewhere.atLeastNTimes(1, aPlan("NodeIndexSeek").containingVariables("f")), expectPlansToFail = Configs.AllRulePlanners + Configs.Cost2_3))
+      planComparisonStrategy = ComparePlansWithAssertion( _ should includeSomewhere.atLeastNTimes(1, aPlan("NodeIndexSeek").containingVariables("f")), expectPlansToFail = Configs.RulePlanner + Configs.Cost2_3))
     result.columnAs[Node]("f").toList should equal(List(nodes(123)))
   }
 
@@ -135,7 +137,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
         | RETURN f
       """.stripMargin
     val result = executeWith(Configs.All, query,
-      planComparisonStrategy = ComparePlansWithAssertion( _ should includeSomewhere.atLeastNTimes(1, aPlan("NodeIndexSeek").containingVariables("f")), expectPlansToFail = Configs.AllRulePlanners + Configs.Cost2_3))
+      planComparisonStrategy = ComparePlansWithAssertion( _ should includeSomewhere.atLeastNTimes(1, aPlan("NodeIndexSeek").containingVariables("f")), expectPlansToFail = Configs.RulePlanner + Configs.Cost2_3))
     result.columnAs[Node]("f").toSet should equal(Set(nodes(122), nodes(123)))
   }
 
@@ -150,7 +152,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
 
     val result = executeWith(Configs.All - Configs.Compiled, query,
       planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("NodeIndexSeekByRange").containingArgument(":Foo(prop) > b.prop2"),
-        expectPlansToFail = Configs.OldAndRule))
+        expectPlansToFail = Configs.Version2_3 + Configs.Version3_1 + Configs.Version3_4))
 
     result.columnAs[Node]("a").toList should equal(List(aNodes(123), aNodes(124), aNodes(125)))
   }
@@ -166,7 +168,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
 
     val result = executeWith(Configs.All - Configs.Compiled, query,
       planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("NodeIndexSeekByRange").containingArgument(":Foo(prop STARTS WITH b.prop2)"),
-        expectPlansToFail = Configs.OldAndRule))
+        expectPlansToFail = Configs.Version2_3 + Configs.Version3_1 + Configs.Version3_4))
 
     result.columnAs[Node]("a").toSet should equal(Set(aNodes(12), aNodes(120), aNodes(121), aNodes(122), aNodes(123), aNodes(124), aNodes(125)))
   }
@@ -183,7 +185,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
 
     val result = executeWith(Configs.All - Configs.Compiled, query,
       planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("NodeIndexSeekByRange").containingArgument(":Foo(prop CONTAINS b.prop2)"),
-        expectPlansToFail = Configs.OldAndRule))
+        expectPlansToFail = Configs.Version2_3 + Configs.Version3_1 + Configs.Version3_4))
 
     result.columnAs[Node]("a").toSet should equal(Set(aNodes(12), aNodes(120), aNodes(121), aNodes(122), aNodes(123), aNodes(124), aNodes(125)))
   }
@@ -199,7 +201,7 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
 
     val result = executeWith(Configs.All - Configs.Compiled, query,
       planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("NodeIndexSeekByRange").containingArgument(":FOO(prop ENDS WITH b.prop2)"),
-        expectPlansToFail = Configs.OldAndRule))
+        expectPlansToFail = Configs.Version2_3 + Configs.Version3_1 + Configs.Version3_4))
 
     result.columnAs[Node]("a").toSet should equal(Set(aNodes(12), aNodes(120), aNodes(121), aNodes(122), aNodes(123), aNodes(124), aNodes(125)))
   }
@@ -220,9 +222,9 @@ class IndexNestedLoopJoinAcceptanceTest extends ExecutionEngineFunSuite with Cyp
 
     // Matches the word "distance" anywhere in the argument string
     val distanceRegex = ".*distance.*".r
-    val result = executeWith(Configs.Interpreted - Configs.Version3_1 - Configs.Version2_3 - Configs.AllRulePlanners, query,
+    val result = executeWith(Configs.InterpretedAndSlotted - Configs.Version3_1 - Configs.Version2_3, query,
       planComparisonStrategy = ComparePlansWithAssertion(_ should includeSomewhere.aPlan("NodeIndexSeekByRange").containingArgumentRegex(distanceRegex),
-        expectPlansToFail = Configs.OldAndRule))
+        expectPlansToFail = Configs.Version2_3 + Configs.Version3_1 + Configs.Version3_4))
 
     result.columnAs[Node]("id(a)").toList should equal(List(99, 100, 101))
   }

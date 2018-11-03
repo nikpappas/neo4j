@@ -29,7 +29,6 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.core.Member;
 import com.hazelcast.core.MultiMap;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,12 +47,12 @@ import org.neo4j.causalclustering.core.consensus.LeaderInfo;
 import org.neo4j.causalclustering.identity.ClusterId;
 import org.neo4j.causalclustering.identity.MemberId;
 import org.neo4j.helpers.AdvertisedSocketAddress;
+import org.neo4j.helpers.collection.CollectorsUtil;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.configuration.Config;
 import org.neo4j.logging.Log;
 import org.neo4j.stream.Streams;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static org.neo4j.causalclustering.core.CausalClusteringSettings.refuse_to_be_leader;
 import static org.neo4j.helpers.SocketAddressParser.socketAddress;
@@ -81,11 +80,12 @@ public final class HazelcastClusterTopology
     static final String DB_NAME_LEADER_TERM_PREFIX = "leader_term_for_database_name_";
 
     // the attributes used for reconstructing read replica information
-    private static Collection<String> simpleRRAttrMapKeys = asList( READ_REPLICA_BOLT_ADDRESS_MAP, READ_REPLICA_TRANSACTION_SERVER_ADDRESS_MAP,
-            READ_REPLICA_MEMBER_ID_MAP, READ_REPLICAS_DB_NAME_MAP );
+    static final Set<String> RR_ATTR_KEYS = Stream.of( READ_REPLICA_BOLT_ADDRESS_MAP, READ_REPLICA_TRANSACTION_SERVER_ADDRESS_MAP,
+            READ_REPLICA_MEMBER_ID_MAP, READ_REPLICAS_DB_NAME_MAP ).collect( Collectors.toSet() );
 
     // the attributes used for reconstructing core member information
-    private static Collection<String> coreAttrKeys = asList( MEMBER_UUID, RAFT_SERVER, TRANSACTION_SERVER, CLIENT_CONNECTOR_ADDRESSES, MEMBER_DB_NAME );
+    static final Set<String> CORE_ATTR_KEYS = Stream.of( MEMBER_UUID, RAFT_SERVER, TRANSACTION_SERVER, CLIENT_CONNECTOR_ADDRESSES,
+            MEMBER_DB_NAME ).collect( Collectors.toSet() );
 
     private HazelcastClusterTopology()
     {
@@ -185,7 +185,7 @@ public final class HazelcastClusterTopology
         return uuid == null || clusterId.uuid().equals( uuid );
     }
 
-    private static Map<MemberId,ReadReplicaInfo> readReplicas( HazelcastInstance hazelcastInstance, Log log )
+    static Map<MemberId,ReadReplicaInfo> readReplicas( HazelcastInstance hazelcastInstance, Log log )
     {
         Pair<Set<String>,Map<String,IMap<String,String>>> validatedSimpleAttrMaps = validatedSimpleAttrMaps( hazelcastInstance );
         Set<String> missingAttrKeys = validatedSimpleAttrMaps.first();
@@ -201,7 +201,7 @@ public final class HazelcastClusterTopology
         if ( !missingAttrKeys.isEmpty() )
         {
             // We might well not have any read replicas, in which case missing maps is not an error, but we *can't* have some maps and not others
-            boolean missingAllKeys = missingAttrKeys.containsAll( simpleRRAttrMapKeys ) && missingAttrKeys.contains( SERVER_GROUPS_MULTIMAP );
+            boolean missingAllKeys = missingAttrKeys.containsAll( RR_ATTR_KEYS ) && missingAttrKeys.contains( SERVER_GROUPS_MULTIMAP );
             if ( !missingAllKeys )
             {
                 String missingAttrs = String.join( ", ", missingAttrKeys );
@@ -228,7 +228,7 @@ public final class HazelcastClusterTopology
         Set<String> missingAttrKeys = new HashSet<>();
         Map<String,IMap<String,String>> validatedSimpleAttrMaps = new HashMap<>();
 
-        for ( String attrMapKey : simpleRRAttrMapKeys )
+        for ( String attrMapKey : RR_ATTR_KEYS )
         {
             IMap<String,String> attrMap = hazelcastInstance.getMap( attrMapKey );
             if ( attrMap == null )
@@ -252,19 +252,17 @@ public final class HazelcastClusterTopology
     private static Pair<MemberId,ReadReplicaInfo> buildReadReplicaFromAttrMap( String hzId, Map<String,IMap<String,String>> simpleAttrMaps,
             MultiMap<String,String> serverGroupsMap, Log log )
     {
+        Map<String,String> memberAttrs = simpleAttrMaps.entrySet().stream()
+                .map( e -> Pair.of( e.getKey(), e.getValue().get( hzId ) ) )
+                .filter( p -> hasAttribute( p, hzId, log ) )
+                .collect( CollectorsUtil.pairsToMap() );
 
-        Map<String,String> memberAttrs = simpleAttrMaps.entrySet().stream().collect( Collectors.toMap( Map.Entry::getKey, e -> e.getValue().get( hzId ) ) );
-        Collection<String> memberServerGroups = serverGroupsMap.get( hzId );
-
-        for ( Map.Entry<String,String> attr : memberAttrs.entrySet() )
+        if ( !memberAttrs.keySet().containsAll( RR_ATTR_KEYS ) )
         {
-            if ( attr.getValue() == null )
-            {
-                log.warn( "Missing attribute %s for read replica with hz id %s", attr.getKey(), hzId );
-                return null;
-            }
+            return null;
         }
 
+        Collection<String> memberServerGroups = serverGroupsMap.get( hzId );
         if ( memberServerGroups == null )
         {
             log.warn( "Missing attribute %s for read replica with hz id %s", SERVER_GROUPS_MULTIMAP, hzId );
@@ -279,6 +277,16 @@ public final class HazelcastClusterTopology
 
         ReadReplicaInfo rrInfo = new ReadReplicaInfo( boltAddresses, catchupAddress, serverGroupSet, memberDbName );
         return Pair.of( memberId, rrInfo );
+    }
+
+    private static boolean hasAttribute( Pair<String,String> memberAttr, String hzId, Log log )
+    {
+        if ( memberAttr.other() == null )
+        {
+            log.warn( "Missing attribute %s for read replica with hz id %s", memberAttr.first(), hzId  );
+            return false;
+        }
+        return true;
     }
 
     static void casLeaders( HazelcastInstance hazelcastInstance, LeaderInfo leaderInfo, String dbName, Log log )
@@ -339,7 +347,7 @@ public final class HazelcastClusterTopology
         {
             Map<String,String> attrMap = new HashMap<>();
             boolean incomplete = false;
-            for ( String attrKey : coreAttrKeys )
+            for ( String attrKey : CORE_ATTR_KEYS )
             {
                 String attrValue = member.getStringAttribute( attrKey );
                 if ( attrValue == null )

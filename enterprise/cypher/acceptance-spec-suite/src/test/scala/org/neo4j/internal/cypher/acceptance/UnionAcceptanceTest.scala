@@ -23,7 +23,8 @@
 package org.neo4j.internal.cypher.acceptance
 
 import org.neo4j.cypher._
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport._
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
 
 class UnionAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonSupport {
 
@@ -43,7 +44,7 @@ class UnionAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonS
         |M.a as B
       """.stripMargin
 
-    val result = executeWith(Configs.Interpreted, query)
+    val result = executeWith(Configs.InterpretedAndSlotted, query)
     val expected = List(Map("A" -> "a", "B" -> "b"), Map("A" -> "b", "B" -> "a"))
 
     result.toList should equal(expected)
@@ -60,7 +61,7 @@ class UnionAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonS
         |RETURN "foo" AS A
       """.stripMargin
 
-    val result1 = executeWith(Configs.Interpreted, query1)
+    val result1 = executeWith(Configs.InterpretedAndSlotted, query1)
     val expected1 = List(Map("A" -> node), Map("A" -> "foo"))
 
     result1.toList should equal(expected1)
@@ -73,7 +74,7 @@ class UnionAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonS
         |RETURN n AS A
       """.stripMargin
 
-    val result2 = executeWith(Configs.Interpreted, query2)
+    val result2 = executeWith(Configs.InterpretedAndSlotted, query2)
     val expected2 = List(Map("A" -> "foo"), Map("A" -> node))
 
     result2.toList should equal(expected2)
@@ -92,7 +93,7 @@ class UnionAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonS
         |RETURN r AS A
       """.stripMargin
 
-    val result1 = executeWith(Configs.Interpreted, query1)
+    val result1 = executeWith(Configs.InterpretedAndSlotted, query1)
     val expected1 = List(Map("A" -> node), Map("A" -> rel))
 
     result1.toList should equal(expected1)
@@ -106,7 +107,7 @@ class UnionAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonS
         |RETURN n AS A
       """.stripMargin
 
-    val result2 = executeWith(Configs.Interpreted, query2)
+    val result2 = executeWith(Configs.InterpretedAndSlotted, query2)
     val expected2 = List(Map("A" -> rel), Map("A" -> node))
 
     result2.toList should equal(expected2)
@@ -126,7 +127,7 @@ class UnionAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonS
         |M, N
       """.stripMargin
 
-    val result = executeWith(Configs.Interpreted - Configs.Cost2_3, query)
+    val result = executeWith(Configs.InterpretedAndSlotted - Configs.Cost2_3, query)
     val expected = List(Map("M" -> b, "N" -> a), Map("M" -> a, "N" -> b))
 
     result.toList should equal(expected)
@@ -148,7 +149,7 @@ class UnionAcceptanceTest extends ExecutionEngineFunSuite with CypherComparisonS
         |M.a as B
       """.stripMargin
 
-    val expectedToWorkIn = Configs.Interpreted - Configs.Cost2_3
+    val expectedToWorkIn = Configs.InterpretedAndSlotted - Configs.Cost2_3
     val result = executeWith(expectedToWorkIn, query)
     val expected = List(Map("A" -> "b", "B" -> "a"), Map("A" -> "a", "B" -> "b"))
 

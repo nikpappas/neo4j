@@ -22,8 +22,11 @@
  */
 package org.neo4j.internal.cypher.acceptance
 
-import org.neo4j.graphdb.{Label, Node, Relationship}
-import org.neo4j.internal.cypher.acceptance.CypherComparisonSupport.Configs
+import org.neo4j.graphdb.Label
+import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.Relationship
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.Configs
+import org.neo4j.internal.cypher.acceptance.comparisonsupport.CypherComparisonSupport
 import org.neo4j.kernel.impl.index.schema.GenericNativeIndexProvider
 import org.scalatest.LoneElement._
 
@@ -31,9 +34,9 @@ import scala.collection.JavaConversions._
 
 class BuiltInProcedureAcceptanceTest extends ProcedureCallAcceptanceTest with CypherComparisonSupport {
 
-  private val combinedCallconfiguration = Configs.Interpreted - Configs.AllRulePlanners - Configs.Version2_3
+  private val combinedCallconfiguration = Configs.InterpretedAndSlotted - Configs.RulePlanner - Configs.Version2_3
 
-  private val config = Configs.Procs + Configs.Cost3_1
+  private val config = Configs.All - Configs.Version2_3
 
   test("should be able to filter as part of call") {
     // Given
@@ -127,7 +130,7 @@ class BuiltInProcedureAcceptanceTest extends ProcedureCallAcceptanceTest with Cy
 
   test("should not be able to filter as part of standalone call") {
     failWithError(
-      Configs.AbsolutelyAll - Configs.Version2_3,
+      Configs.All - Configs.Version2_3,
       "CALL db.labels() YIELD label WHERE label <> 'A'",
       List("Cannot use standalone call with WHERE"))
   }
@@ -329,7 +332,7 @@ class BuiltInProcedureAcceptanceTest extends ProcedureCallAcceptanceTest with Cy
   }
 
   test("yield from void procedure should return correct error msg") {
-    failWithError(Configs.Procs + Configs.Version3_5 + Configs.Version3_4 - Configs.AllRulePlanners,
+    failWithError(Configs.Version3_5 + Configs.Version3_4,
                   "CALL db.createLabel('Label') yield node",
                   List("Cannot yield value from void procedure."))
   }
@@ -431,5 +434,21 @@ class BuiltInProcedureAcceptanceTest extends ProcedureCallAcceptanceTest with Cy
       "version" -> "1.0",
       "key" -> "lucene+native"))
     mapResult("failureMessage") should equal("")
+  }
+
+  test("should list indexes in alphabetical order") {
+    // Given
+    graph.createIndex("A", "prop")
+    graph.createIndex("C", "foo")
+    graph.createIndex("B", "foo")
+    graph.createIndex("A", "foo")
+    graph.createIndex("A", "bar")
+
+    //When
+    val result = executeWith(combinedCallconfiguration, "CALL db.indexes() YIELD description RETURN description")
+
+    // Then
+    result.columnAs("description").toList should equal(
+      List("INDEX ON :A(bar)", "INDEX ON :A(foo)", "INDEX ON :A(prop)", "INDEX ON :B(foo)", "INDEX ON :C(foo)"))
   }
 }
