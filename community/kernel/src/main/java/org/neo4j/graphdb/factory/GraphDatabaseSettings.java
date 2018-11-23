@@ -189,7 +189,7 @@ public class GraphDatabaseSettings implements LoadableConfig
     @Description( "Set this to specify the default parser (language version)." )
     public static final Setting<String> cypher_parser_version = setting(
             "cypher.default_language_version",
-            optionsObeyCase( "2.3", "3.1", "3.3","3.5", DEFAULT ), DEFAULT );
+            optionsObeyCase( "2.3", "3.1", "3.4","3.5", DEFAULT ), DEFAULT );
 
     @Description( "Set this to specify the default planner for the default language version." )
     public static final Setting<String> cypher_planner = setting(
@@ -1068,7 +1068,7 @@ public class GraphDatabaseSettings implements LoadableConfig
     public static final Setting<TransactionStateMemoryAllocation> tx_state_memory_allocation = buildSetting(
             "dbms.tx_state.memory_allocation",
             optionsIgnoreCase( TransactionStateMemoryAllocation.class ),
-            TransactionStateMemoryAllocation.OFF_HEAP.name() ).build();
+            TransactionStateMemoryAllocation.ON_HEAP.name() ).build();
 
     @Description( "The maximum amount of off-heap memory that can be used to store transaction state data; it's a total amount of memory " +
             "shared across all active transactions. Zero means 'unlimited'. Used when dbms.tx_state.memory_allocation is set to 'OFF_HEAP'." )
