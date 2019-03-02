@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -71,12 +71,22 @@ class ConflictDetectingValueMerger<KEY extends NativeIndexKey<KEY>, VALUE extend
         key.setCompareId( compareEntityIds );
     }
 
+    boolean wasConflicting()
+    {
+        return conflict;
+    }
+
+    void reportConflict( Value[] values ) throws IndexEntryConflictException
+    {
+        conflict = false;
+        throw new IndexEntryConflictException( existingNodeId, addedNodeId, ValueTuple.of( values ) );
+    }
+
     void checkConflict( Value[] values ) throws IndexEntryConflictException
     {
-        if ( conflict )
+        if ( wasConflicting() )
         {
-            conflict = false;
-            throw new IndexEntryConflictException( existingNodeId, addedNodeId, ValueTuple.of( values ) );
+            reportConflict( values );
         }
     }
 }

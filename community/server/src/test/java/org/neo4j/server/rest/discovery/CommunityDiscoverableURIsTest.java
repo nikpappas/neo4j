@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -82,8 +82,7 @@ public class CommunityDiscoverableURIsTest
     private Map<String,Object> toMap( DiscoverableURIs uris )
     {
         Map<String,Object> out = new HashMap<>();
-        uris.forEachAbsoluteUri( ( k, v ) -> out.put( k, v.toASCIIString() ) );
-        uris.forEachRelativeUri( out::put );
+        uris.forEach( ( k, v ) -> out.put( k, v.toASCIIString() ) );
         return out;
     }
 }

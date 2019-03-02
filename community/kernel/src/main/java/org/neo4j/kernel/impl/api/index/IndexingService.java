@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -51,6 +51,7 @@ import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.internal.kernel.api.InternalIndexState;
 import org.neo4j.internal.kernel.api.TokenNameLookup;
 import org.neo4j.internal.kernel.api.exceptions.schema.IndexNotFoundKernelException;
+import org.neo4j.internal.kernel.api.exceptions.schema.MisconfiguredIndexException;
 import org.neo4j.internal.kernel.api.schema.IndexProviderDescriptor;
 import org.neo4j.internal.kernel.api.schema.SchemaDescriptor;
 import org.neo4j.io.pagecache.IOLimiter;
@@ -62,7 +63,7 @@ import org.neo4j.kernel.api.index.IndexEntryUpdate;
 import org.neo4j.kernel.api.index.IndexPopulator;
 import org.neo4j.kernel.api.index.IndexProvider;
 import org.neo4j.kernel.api.index.IndexUpdater;
-import org.neo4j.kernel.api.index.NodePropertyAccessor;
+import org.neo4j.storageengine.api.NodePropertyAccessor;
 import org.neo4j.kernel.impl.api.SchemaState;
 import org.neo4j.kernel.impl.api.index.sampling.IndexSamplingController;
 import org.neo4j.kernel.impl.api.index.sampling.IndexSamplingMode;
@@ -420,8 +421,10 @@ public class IndexingService extends LifecycleAdapter implements IndexingUpdateS
             case ONLINE:
                 return;
             case FAILED:
-                throw new IllegalStateException(
-                        "Index entered " + FAILED + " state while recovery waited for it to be fully populated" );
+                IndexPopulationFailure populationFailure = proxy.getPopulationFailure();
+                String message = String.format( "Index entered %s state while recovery waited for it to be fully populated.", FAILED );
+                String causeOfFailure = populationFailure.asString();
+                throw new IllegalStateException( IndexPopulationFailure.appendCauseOfFailure( message, causeOfFailure ) );
             case POPULATING:
                 // Sleep a short while and look at state again the next loop iteration
                 try
@@ -479,6 +482,13 @@ public class IndexingService extends LifecycleAdapter implements IndexingUpdateS
     public void validateBeforeCommit( SchemaDescriptor index, Value[] tuple )
     {
         indexMapRef.validateBeforeCommit( index, tuple );
+    }
+
+    @Override
+    public IndexDescriptor getBlessedDescriptorFromProvider( IndexDescriptor index ) throws MisconfiguredIndexException
+    {
+        IndexProvider provider = providerMap.lookup( index.providerDescriptor() );
+        return provider.bless( index );
     }
 
     @Override

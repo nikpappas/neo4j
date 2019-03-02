@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -20,9 +20,9 @@
 package cypher.features
 
 import cypher.features
-import org.opencypher.v9_0.parser.{Base, Expressions, Literals}
-import org.opencypher.v9_0.util.SyntaxException
-import org.opencypher.v9_0.util.symbols._
+import org.neo4j.cypher.internal.v3_5.parser.{Base, Expressions, Literals}
+import org.neo4j.cypher.internal.v3_5.util.SyntaxException
+import org.neo4j.cypher.internal.v3_5.util.symbols._
 import org.parboiled.scala._
 
 /**

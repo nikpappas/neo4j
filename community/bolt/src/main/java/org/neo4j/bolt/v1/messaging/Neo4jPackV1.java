@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -553,7 +553,7 @@ public class Neo4jPackV1 implements Neo4jPack
             MapValueBuilder map;
             if ( size == UNKNOWN_SIZE )
             {
-                map = new MapValueBuilder(  );
+                map = new MapValueBuilder();
                 boolean more = true;
                 while ( more )
                 {

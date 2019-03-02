@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -19,15 +19,15 @@
  */
 package org.neo4j.cypher.internal.ir.v3_5.helpers
 
-import org.opencypher.v9_0.util.{Rewriter, topDown}
-import org.opencypher.v9_0.rewriting.rewriters.{LabelPredicateNormalizer, MatchPredicateNormalizerChain, PropertyPredicateNormalizer, addUniquenessPredicates}
+import org.neo4j.cypher.internal.v3_5.util.{Rewriter, topDown}
+import org.neo4j.cypher.internal.v3_5.rewriting.rewriters.{LabelPredicateNormalizer, MatchPredicateNormalizerChain, PropertyPredicateNormalizer, addUniquenessPredicates}
 
-import org.opencypher.v9_0.expressions.{Ands, Expression, HasLabels, Not, Ors, PatternComprehension, PatternExpression, RelationshipChain, Variable}
-import org.opencypher.v9_0.util.UnNamedNameGenerator._
+import org.neo4j.cypher.internal.v3_5.expressions.{Ands, Expression, HasLabels, Not, Ors, PatternComprehension, PatternExpression, RelationshipChain, Variable}
+import org.neo4j.cypher.internal.v3_5.util.UnNamedNameGenerator._
 import org.neo4j.cypher.internal.ir.v3_5._
 import org.neo4j.cypher.internal.ir.v3_5.helpers.PatternConverters._
 import org.neo4j.cypher.internal.ir.v3_5.QueryGraph
-import org.opencypher.v9_0.expressions.Range
+import org.neo4j.cypher.internal.v3_5.expressions.Range
 
 object ExpressionConverters {
   val normalizer = MatchPredicateNormalizerChain(PropertyPredicateNormalizer, LabelPredicateNormalizer)

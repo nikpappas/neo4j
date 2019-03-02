@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -28,7 +28,7 @@ import org.neo4j.kernel.api.StatementConstants
 import org.neo4j.values.AnyValue
 import org.neo4j.values.storable.Values
 import org.neo4j.values.virtual.VirtualNodeValue
-import org.opencypher.v9_0.util.CypherTypeException
+import org.neo4j.cypher.internal.v3_5.util.CypherTypeException
 
 abstract class AbstractCachedNodeProperty extends Expression {
 
@@ -51,7 +51,12 @@ abstract class AbstractCachedNodeProperty extends Expression {
           val maybeTxStateValue = state.query.nodeOps.getTxStateProperty(nodeId, propId)
           maybeTxStateValue match {
             case Some(txStateValue) => txStateValue
-            case None => getCachedProperty(ctx)
+            case None =>
+              val cached = getCachedProperty(ctx)
+              if (cached == null) // if the cached node property has been invalidated
+                state.query.nodeProperty(nodeId, propId)
+              else
+                cached
           }
       }
     }

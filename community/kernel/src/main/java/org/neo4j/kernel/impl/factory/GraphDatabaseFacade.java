@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -116,11 +116,13 @@ import org.neo4j.values.storable.Values;
 import org.neo4j.values.virtual.MapValue;
 
 import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.neo4j.graphdb.factory.GraphDatabaseSettings.transaction_timeout;
 import static org.neo4j.helpers.collection.Iterators.emptyResourceIterator;
 import static org.neo4j.internal.kernel.api.security.LoginContext.AUTH_DISABLED;
 import static org.neo4j.kernel.impl.api.explicitindex.InternalAutoIndexing.NODE_AUTO_INDEX;
 import static org.neo4j.kernel.impl.api.explicitindex.InternalAutoIndexing.RELATIONSHIP_AUTO_INDEX;
+import static org.neo4j.values.storable.Values.utf8Value;
 
 /**
  * Implementation of the GraphDatabaseService/GraphDatabaseService interfaces - the "Core API". Given an {@link SPI}
@@ -635,16 +637,16 @@ public class GraphDatabaseFacade implements GraphDatabaseAPI, EmbeddedProxySPI
         switch ( searchMode )
         {
         case EXACT:
-            query = IndexQuery.exact( propertyId, Values.stringValue( value ) );
+            query = IndexQuery.exact( propertyId, utf8Value( value.getBytes( UTF_8 ) ) );
             break;
         case PREFIX:
-            query = IndexQuery.stringPrefix( propertyId, value );
+            query = IndexQuery.stringPrefix( propertyId, utf8Value( value.getBytes( UTF_8 ) ) );
             break;
         case SUFFIX:
-            query = IndexQuery.stringSuffix( propertyId, value );
+            query = IndexQuery.stringSuffix( propertyId, utf8Value( value.getBytes( UTF_8 ) ) );
             break;
         case CONTAINS:
-            query = IndexQuery.stringContains( propertyId, value );
+            query = IndexQuery.stringContains( propertyId, utf8Value( value.getBytes( UTF_8 ) ) );
             break;
         default:
             throw new IllegalStateException( "Unknown string search mode: " + searchMode );

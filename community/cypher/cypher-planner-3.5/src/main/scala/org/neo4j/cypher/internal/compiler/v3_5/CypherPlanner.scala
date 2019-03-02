@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -33,10 +33,10 @@ import org.neo4j.cypher.internal.ir.v3_5.UnionQuery
 import org.neo4j.cypher.internal.planner.v3_5.spi.IDPPlannerName
 import org.neo4j.cypher.internal.planner.v3_5.spi.PlannerNameFor
 import org.neo4j.cypher.internal.v3_5.logical.plans.LogicalPlan
-import org.opencypher.v9_0.frontend.phases.CompilationPhaseTracer
-import org.opencypher.v9_0.frontend.phases._
-import org.opencypher.v9_0.rewriting.{Deprecations, RewriterStepSequencer}
-import org.opencypher.v9_0.util.InputPosition
+import org.neo4j.cypher.internal.v3_5.frontend.phases.CompilationPhaseTracer
+import org.neo4j.cypher.internal.v3_5.frontend.phases._
+import org.neo4j.cypher.internal.v3_5.rewriting.{Deprecations, RewriterStepSequencer}
+import org.neo4j.cypher.internal.v3_5.util.InputPosition
 
 case class CypherPlanner[Context <: PlannerContext](monitors: Monitors,
                                                     sequencer: String => RewriterStepSequencer,

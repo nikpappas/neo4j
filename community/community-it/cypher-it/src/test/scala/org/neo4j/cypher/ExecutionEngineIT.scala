@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -24,7 +24,7 @@ import org.neo4j.cypher.internal.planner.v3_5.spi.CostBasedPlannerName
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
 import org.neo4j.graphdb.{ExecutionPlanDescription, GraphDatabaseService, QueryExecutionException, Result}
 import org.neo4j.test.TestGraphDatabaseFactory
-import org.opencypher.v9_0.util.test_helpers.CypherFunSuite
+import org.neo4j.cypher.internal.v3_5.util.test_helpers.CypherFunSuite
 
 class ExecutionEngineIT extends CypherFunSuite with GraphIcing {
 

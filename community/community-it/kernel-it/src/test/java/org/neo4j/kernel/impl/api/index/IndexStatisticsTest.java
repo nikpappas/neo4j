@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -422,7 +422,7 @@ public class IndexStatisticsTest
                     }
                     if ( !found )
                     {
-                        mismatches.add( "Index is missing entry for " + name );
+                        mismatches.add( "Index is missing entry for " + name + " " + node );
                     }
                 }
                 if ( !mismatches.isEmpty() )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -83,7 +83,7 @@ public abstract class NodeIndexTransactionStateTestBase<G extends KernelAPIWrite
             expected.add( nodeWithProp( tx, "2suff" ) );
             nodeWithPropId( tx, "skruff" );
             IndexReference index = tx.schemaRead().index( label, prop );
-            assertNodeAndValueForSeek( expected, tx, index, needsValues, "pasuff", IndexQuery.stringSuffix( prop, "suff" ) );
+            assertNodeAndValueForSeek( expected, tx, index, needsValues, "pasuff", IndexQuery.stringSuffix( prop, stringValue( "suff" ) ) );
         }
     }
 
@@ -173,7 +173,7 @@ public abstract class NodeIndexTransactionStateTestBase<G extends KernelAPIWrite
             nodeWithPropId( tx, "skruff" );
             IndexReference index = tx.schemaRead().index( label, prop );
 
-            assertNodeAndValueForSeek( expected, tx, index,  needsValues, "suffpa", IndexQuery.stringPrefix( prop, "suff" ) );
+            assertNodeAndValueForSeek( expected, tx, index,  needsValues, "suffpa", IndexQuery.stringPrefix( prop, stringValue( "suff" ) ) );
         }
     }
 
@@ -316,7 +316,7 @@ public abstract class NodeIndexTransactionStateTestBase<G extends KernelAPIWrite
             nodeWithPropId( tx, "telephonecompany" );
             IndexReference index = tx.schemaRead().index( label, prop );
 
-            assertNodeAndValueForSeek( expected, tx, index, needsValues, "immense", IndexQuery.stringContains( prop, "me" ) );
+            assertNodeAndValueForSeek( expected, tx, index, needsValues, "immense", IndexQuery.stringContains( prop, stringValue( "me" ) ) );
         }
     }
 

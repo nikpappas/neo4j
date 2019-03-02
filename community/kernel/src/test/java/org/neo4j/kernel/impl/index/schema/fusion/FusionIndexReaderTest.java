@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -63,6 +63,7 @@ import static org.neo4j.kernel.impl.index.schema.fusion.IndexSlot.NUMBER;
 import static org.neo4j.kernel.impl.index.schema.fusion.IndexSlot.SPATIAL;
 import static org.neo4j.kernel.impl.index.schema.fusion.IndexSlot.STRING;
 import static org.neo4j.kernel.impl.index.schema.fusion.IndexSlot.TEMPORAL;
+import static org.neo4j.values.storable.Values.stringValue;
 
 @RunWith( Parameterized.class )
 public class FusionIndexReaderTest
@@ -326,7 +327,7 @@ public class FusionIndexReaderTest
     public void mustSelectStringForStringPrefixPredicate() throws Exception
     {
         // given
-        StringPrefixPredicate stringPrefix = IndexQuery.stringPrefix( PROP_KEY, "abc" );
+        StringPrefixPredicate stringPrefix = IndexQuery.stringPrefix( PROP_KEY, stringValue( "abc" ) );
 
         // then
         verifyQueryWithCorrectReader( expectedForStrings(), stringPrefix );
@@ -336,7 +337,7 @@ public class FusionIndexReaderTest
     public void mustSelectStringForStringSuffixPredicate() throws Exception
     {
         // given
-        StringSuffixPredicate stringPrefix = IndexQuery.stringSuffix( PROP_KEY, "abc" );
+        StringSuffixPredicate stringPrefix = IndexQuery.stringSuffix( PROP_KEY, stringValue( "abc" ) );
 
         // then
         verifyQueryWithCorrectReader( expectedForStrings(), stringPrefix );
@@ -346,7 +347,7 @@ public class FusionIndexReaderTest
     public void mustSelectStringForStringContainsPredicate() throws Exception
     {
         // given
-        StringContainsPredicate stringContains = IndexQuery.stringContains( PROP_KEY, "abc" );
+        StringContainsPredicate stringContains = IndexQuery.stringContains( PROP_KEY, stringValue( "abc" ) );
 
         // then
         verifyQueryWithCorrectReader( expectedForStrings(), stringContains );

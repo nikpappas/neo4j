@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -58,9 +58,9 @@ import org.neo4j.storageengine.api.RelationshipVisitor
 import org.neo4j.values.storable.{TextValue, Value, Values, _}
 import org.neo4j.values.virtual._
 import org.neo4j.values.{AnyValue, ValueMapper}
-import org.opencypher.v9_0.expressions.SemanticDirection
-import org.opencypher.v9_0.expressions.SemanticDirection.{BOTH, INCOMING, OUTGOING}
-import org.opencypher.v9_0.util.{EntityNotFoundException, FailedIndexException}
+import org.neo4j.cypher.internal.v3_5.expressions.SemanticDirection
+import org.neo4j.cypher.internal.v3_5.expressions.SemanticDirection.{BOTH, INCOMING, OUTGOING}
+import org.neo4j.cypher.internal.v3_5.util.{EntityNotFoundException, FailedIndexException}
 
 import scala.collection.Iterator
 import scala.collection.JavaConverters._
@@ -333,13 +333,13 @@ sealed class TransactionBoundQueryContext(val transactionalContext: Transactiona
   override def indexSeekByContains[RESULT <: AnyRef](index: IndexReference,
                                                      needsValues: Boolean,
                                                      indexOrder: IndexOrder,
-                                                     value: String): NodeValueIndexCursor =
+                                                     value: TextValue): NodeValueIndexCursor =
     seek(index, needsValues, indexOrder, IndexQuery.stringContains(index.properties()(0), value))
 
   override def indexSeekByEndsWith[RESULT <: AnyRef](index: IndexReference,
                                                      needsValues: Boolean,
                                                      indexOrder: IndexOrder,
-                                                     value: String): NodeValueIndexCursor =
+                                                     value: TextValue): NodeValueIndexCursor =
     seek(index, needsValues, indexOrder, IndexQuery.stringSuffix(index.properties()(0), value))
 
   override def lockingUniqueIndexSeek[RESULT](indexReference: IndexReference,

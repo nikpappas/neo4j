@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -251,7 +251,7 @@ class TxStateIndexChanges
     // PREFIX
 
     static AddedAndRemoved indexUpdatesForRangeSeekByPrefix( ReadableTransactionState txState,
-                                                             IndexDescriptor descriptor, String prefix,
+                                                             IndexDescriptor descriptor, TextValue prefix,
                                                              IndexOrder indexOrder )
     {
         NavigableMap<ValueTuple,? extends LongDiffSets> sortedUpdates = txState.getSortedIndexUpdates( descriptor.schema() );
@@ -259,7 +259,7 @@ class TxStateIndexChanges
         {
             return EMPTY_ADDED_AND_REMOVED;
         }
-        ValueTuple floor = ValueTuple.of( Values.stringValue( prefix ) );
+        ValueTuple floor = ValueTuple.of( prefix );
 
         MutableLongList added = LongLists.mutable.empty();
         MutableLongSet removed = LongSets.mutable.empty();
@@ -267,7 +267,7 @@ class TxStateIndexChanges
         for ( Map.Entry<ValueTuple,? extends LongDiffSets> entry : sortedUpdates.subMap( floor, MAX_STRING_TUPLE ).entrySet() )
         {
             ValueTuple key = entry.getKey();
-            if ( ((TextValue) key.getOnlyValue()).stringValue().startsWith( prefix ) )
+            if ( ((TextValue) key.getOnlyValue()).startsWith( prefix ) )
             {
                 LongDiffSets diffSets = entry.getValue();
                 added.addAll( diffSets.getAdded() );
@@ -283,7 +283,7 @@ class TxStateIndexChanges
 
     static AddedWithValuesAndRemoved indexUpdatesWithValuesForRangeSeekByPrefix( ReadableTransactionState txState,
                                                                                  IndexDescriptor descriptor,
-                                                                                 String prefix,
+                                                                                 TextValue prefix,
                                                                                  IndexOrder indexOrder )
     {
         NavigableMap<ValueTuple,? extends LongDiffSets> sortedUpdates = txState.getSortedIndexUpdates( descriptor.schema() );
@@ -291,7 +291,7 @@ class TxStateIndexChanges
         {
             return EMPTY_ADDED_AND_REMOVED_WITH_VALUES;
         }
-        ValueTuple floor = ValueTuple.of( Values.stringValue( prefix ) );
+        ValueTuple floor = ValueTuple.of( prefix );
 
         MutableList<NodeWithPropertyValues> added = Lists.mutable.empty();
         MutableLongSet removed = LongSets.mutable.empty();
@@ -299,7 +299,7 @@ class TxStateIndexChanges
         for ( Map.Entry<ValueTuple,? extends LongDiffSets> entry : sortedUpdates.tailMap( floor ).entrySet() )
         {
             ValueTuple key = entry.getKey();
-            if ( ((TextValue) key.getOnlyValue()).stringValue().startsWith( prefix ) )
+            if ( ((TextValue) key.getOnlyValue()).startsWith( prefix ) )
             {
                 LongDiffSets diffSets = entry.getValue();
                 Value[] values = key.getValues();

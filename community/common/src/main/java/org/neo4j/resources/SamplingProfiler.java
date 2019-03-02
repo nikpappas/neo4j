@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -20,10 +20,10 @@
 package org.neo4j.resources;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -33,7 +33,7 @@ class SamplingProfiler implements Profiler
 {
     private static final long DEFAULT_SAMPLE_INTERVAL_NANOS = TimeUnit.MILLISECONDS.toNanos( 1 );
 
-    private final ArrayList<Thread> samplerThreads = new ArrayList<>();
+    private final ConcurrentLinkedQueue<Thread> samplerThreads = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean stopped = new AtomicBoolean();
     private final ConcurrentHashMap<Thread,Sample> samples = new ConcurrentHashMap<>();
     private final AtomicLong sampleIntervalNanos = new AtomicLong( DEFAULT_SAMPLE_INTERVAL_NANOS );
@@ -51,12 +51,12 @@ class SamplingProfiler implements Profiler
     public void finish() throws InterruptedException
     {
         stopped.set( true );
-        for ( Thread thread : samplerThreads )
+        Thread thread;
+        while ( (thread = samplerThreads.poll()) != null )
         {
             thread.interrupt();
             thread.join();
         }
-        samplerThreads.clear();
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -22,11 +22,11 @@ package org.neo4j.cypher.internal.runtime.planDescription
 import org.neo4j.cypher.internal.ir.v3_5.ProvidedOrder
 import org.neo4j.cypher.internal.runtime.planDescription.InternalPlanDescription.Arguments._
 import org.neo4j.cypher.internal.runtime.planDescription.PlanDescriptionArgumentSerializer.serialize
-import org.opencypher.v9_0.util.attribution.SequentialIdGen
-import org.opencypher.v9_0.util.symbols.{CTBoolean, CTList, CTNode, CTString}
-import org.opencypher.v9_0.util.test_helpers.CypherFunSuite
-import org.opencypher.v9_0.util.DummyPosition
-import org.opencypher.v9_0.expressions.{DummyExpression, SemanticDirection, SignedDecimalIntegerLiteral}
+import org.neo4j.cypher.internal.v3_5.util.attribution.SequentialIdGen
+import org.neo4j.cypher.internal.v3_5.util.symbols.{CTBoolean, CTList, CTNode, CTString}
+import org.neo4j.cypher.internal.v3_5.util.test_helpers.CypherFunSuite
+import org.neo4j.cypher.internal.v3_5.util.DummyPosition
+import org.neo4j.cypher.internal.v3_5.expressions.{DummyExpression, SemanticDirection, SignedDecimalIntegerLiteral}
 import org.neo4j.cypher.internal.v3_5.logical.plans.{LogicalPlan, NestedPlanExpression}
 import org.neo4j.cypher.internal.v3_5.logical.plans
 
@@ -71,6 +71,15 @@ class PlanDescriptionArgumentSerializerTests extends CypherFunSuite {
     val value = "GenericCase(Vector((any(  x@40 in n.values where   x@40 =~ Literal(^T-?\\d+$)),SubstringFunction(ContainerIndex(FilterFunction(n.values,  x@106,  x@106 =~ Literal(^T-?\\d+$)),Literal(0)),Literal(1),None))),Some(Literal(1))) == {p0}"
     serialize(KeyNames(Seq(value))) should equal (
       "GenericCase(Vector((any(x in n.values where x =~ Literal(^T-?\\d+$)),SubstringFunction(ContainerIndex(FilterFunction(n.values,x,x =~ Literal(^T-?\\d+$)),Literal(0)),Literal(1),None))),Some(Literal(1))) == {p0}"
+    )
+  }
+
+  test("serialize and deduplicate variable names with regexy symbols") {
+    serialize(KeyNames(Seq("1 >=   version$@40, 2 <=   version$@352"))) should equal (
+      "1 >= version$, 2 <= version$"
+    )
+    serialize(KeyNames(Seq("1 >=   version\\@40, 2 <=   version\\@352"))) should equal (
+      "1 >= version\\, 2 <= version\\"
     )
   }
 

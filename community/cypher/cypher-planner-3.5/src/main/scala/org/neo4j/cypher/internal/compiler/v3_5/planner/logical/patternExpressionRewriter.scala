@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -21,10 +21,10 @@ package org.neo4j.cypher.internal.compiler.v3_5.planner.logical
 
 import org.neo4j.cypher.internal.ir.v3_5.InterestingOrder
 import org.neo4j.cypher.internal.v3_5.logical.plans.NestedPlanExpression
-import org.opencypher.v9_0.expressions._
-import org.opencypher.v9_0.rewriting.rewriters.projectNamedPaths
-import org.opencypher.v9_0.util.Foldable._
-import org.opencypher.v9_0.util.{IdentityMap, Rewriter, topDown}
+import org.neo4j.cypher.internal.v3_5.expressions._
+import org.neo4j.cypher.internal.v3_5.rewriting.rewriters.projectNamedPaths
+import org.neo4j.cypher.internal.v3_5.util.Foldable._
+import org.neo4j.cypher.internal.v3_5.util.{IdentityMap, Rewriter, topDown}
 
 /*
 Rewrite pattern expressions and pattern comprehensions to nested plan expressions by planning them using the given context.

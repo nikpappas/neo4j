@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -29,6 +29,7 @@ import org.neo4j.server.rest.discovery.DiscoverableURIs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.neo4j.server.rest.discovery.DiscoverableURIs.Precedence.NORMAL;
 
 public class DiscoveryRepresentationTest
 {
@@ -38,8 +39,10 @@ public class DiscoveryRepresentationTest
         String managementUri = "/management";
         String dataUri = "/data";
         DiscoveryRepresentation dr = new DiscoveryRepresentation(
-                new DiscoverableURIs().addRelative( "management", managementUri ).addRelative( "data",
-                        dataUri ).addAbsolute( "bolt", new URI( "bolt://localhost:7687" ) ) );
+                new DiscoverableURIs.Builder()
+                        .add( "management", managementUri, NORMAL )
+                        .add( "data", dataUri, NORMAL )
+                        .add( "bolt", new URI( "bolt://localhost:7687" ), NORMAL ).build() );
 
         Map<String,Object> mapOfUris = RepresentationTestAccess.serialize( dr );
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -20,9 +20,9 @@
 package org.neo4j.cypher.internal.ir.v3_5
 
 import org.neo4j.cypher.internal.ir.v3_5.helpers.ExpressionConverters._
-import org.opencypher.v9_0.ast._
-import org.opencypher.v9_0.ast.prettifier.ExpressionStringifier
-import org.opencypher.v9_0.expressions._
+import org.neo4j.cypher.internal.v3_5.ast._
+import org.neo4j.cypher.internal.v3_5.ast.prettifier.ExpressionStringifier
+import org.neo4j.cypher.internal.v3_5.expressions._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.GenSeq

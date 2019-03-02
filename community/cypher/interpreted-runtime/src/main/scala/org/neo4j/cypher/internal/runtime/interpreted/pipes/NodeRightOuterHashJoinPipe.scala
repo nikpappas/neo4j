@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -21,7 +21,7 @@ package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.v3_5.logical.plans.CachedNodeProperty
-import org.opencypher.v9_0.util.attribution.Id
+import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 
 case class NodeRightOuterHashJoinPipe(nodeVariables: Set[String],
                                       lhs: Pipe,
@@ -46,8 +46,8 @@ case class NodeRightOuterHashJoinPipe(nodeVariables: Set[String],
               val lhsRows = probeTable(joinKey)
               if(lhsRows.nonEmpty) {
                 lhsRows.map { lhsRow =>
-                  val outputRow = executionContextFactory.copyWith(lhsRow)
-                  outputRow.mergeWith(rhsRow)
+                  val outputRow = executionContextFactory.copyWith(rhsRow)
+                  outputRow.mergeWith(lhsRow)
                   outputRow
                 }
               } else {

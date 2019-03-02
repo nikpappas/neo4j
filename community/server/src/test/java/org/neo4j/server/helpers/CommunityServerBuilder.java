@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -188,6 +188,7 @@ public class CommunityServerBuilder
         properties.put( GraphDatabaseSettings.logical_logs_location.name(),
                 new File( temporaryFolder, "transaction-logs" ).getAbsolutePath() );
         properties.put( GraphDatabaseSettings.pagecache_memory.name(), "8m" );
+        properties.put( GraphDatabaseSettings.shutdown_transaction_end_timeout.name(), "0s" );
 
         for ( Object key : arbitraryProperties.keySet() )
         {

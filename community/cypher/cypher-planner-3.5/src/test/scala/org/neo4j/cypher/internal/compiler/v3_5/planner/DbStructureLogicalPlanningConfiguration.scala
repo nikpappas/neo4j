@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -26,8 +26,8 @@ import org.neo4j.cypher.internal.planner.v3_5.spi.{GraphStatistics, IndexOrderCa
 import org.neo4j.cypher.internal.v3_5.logical.plans.ProcedureSignature
 import org.neo4j.helpers.collection.{Pair, Visitable}
 import org.neo4j.kernel.impl.util.dbstructure.{DbStructureCollector, DbStructureLookup, DbStructureVisitor}
-import org.opencypher.v9_0.ast.semantics.SemanticTable
-import org.opencypher.v9_0.util.{LabelId, PropertyKeyId, RelTypeId}
+import org.neo4j.cypher.internal.v3_5.ast.semantics.SemanticTable
+import org.neo4j.cypher.internal.v3_5.util.{LabelId, PropertyKeyId, RelTypeId}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable

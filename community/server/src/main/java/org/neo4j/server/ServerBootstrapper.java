@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -103,6 +103,7 @@ public abstract class ServerBootstrapper implements Bootstrapper
                     .withSettings( configOverrides )
                     .withHome(homeDir)
                     .withValidators( configurationValidators() )
+                    .withNoThrowOnFileLoadFailure() // TODO 4.0: Remove this, and require a neo4j.conf file to be present?
                     .withServerDefaults().build();
 
             LogProvider userLogProvider = setupLogging( config );

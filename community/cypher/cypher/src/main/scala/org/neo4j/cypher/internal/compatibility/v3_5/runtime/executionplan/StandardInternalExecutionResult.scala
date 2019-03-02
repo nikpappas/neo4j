@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -34,7 +34,7 @@ import org.neo4j.cypher.result.{QueryResult, RuntimeResult}
 import org.neo4j.graphdb.Result.{ResultRow, ResultVisitor}
 import org.neo4j.graphdb.{NotFoundException, Notification, ResourceIterator}
 import org.neo4j.values.AnyValue
-import org.opencypher.v9_0.util.{ProfilerStatisticsNotReadyException, TaskCloser}
+import org.neo4j.cypher.internal.v3_5.util.{ProfilerStatisticsNotReadyException, TaskCloser}
 
 import scala.collection.mutable
 

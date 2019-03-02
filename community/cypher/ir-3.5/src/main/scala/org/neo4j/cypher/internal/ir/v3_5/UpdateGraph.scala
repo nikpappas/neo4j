@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -19,12 +19,12 @@
  */
 package org.neo4j.cypher.internal.ir.v3_5
 
-import org.opencypher.v9_0.util.InternalException
-import org.opencypher.v9_0.ast.semantics.SemanticTable
-import org.opencypher.v9_0.util.symbols._
-import org.opencypher.v9_0.expressions._
+import org.neo4j.cypher.internal.v3_5.util.InternalException
+import org.neo4j.cypher.internal.v3_5.ast.semantics.SemanticTable
+import org.neo4j.cypher.internal.v3_5.util.symbols._
+import org.neo4j.cypher.internal.v3_5.expressions._
 
-import org.opencypher.v9_0.expressions.functions.Labels
+import org.neo4j.cypher.internal.v3_5.expressions.functions.Labels
 
 
 import scala.annotation.tailrec
@@ -379,7 +379,7 @@ trait UpdateGraph {
 
   /*
    * Checks for overlap between what relationship props are read in query graph
-   * and what is updated with SET her
+   * and what is updated with SET here
    */
   private def setRelPropertyOverlap(propertiesToRead: Set[PropertyKeyName]): Boolean = {
     @tailrec

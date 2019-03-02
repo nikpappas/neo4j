@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -24,11 +24,11 @@ import java.util.Locale
 import org.neo4j.cypher.internal.ir.v3_5.ProvidedOrder
 import org.neo4j.cypher.internal.planner.v3_5.spi.PlanningAttributes.{Cardinalities, ProvidedOrders}
 import org.neo4j.cypher.internal.runtime.planDescription.InternalPlanDescription.Arguments._
-import org.opencypher.v9_0.expressions.SemanticDirection
-import org.opencypher.v9_0.util.attribution.{Id, SequentialIdGen}
-import org.opencypher.v9_0.util.test_helpers.{CypherFunSuite, WindowsStringSafe}
-import org.opencypher.v9_0.util.{DummyPosition, LabelId, NonEmptyList, PropertyKeyId}
-import org.opencypher.v9_0.expressions.{Expression => ASTExpression, LabelName => ASTLabelName, Range => ASTRange, _}
+import org.neo4j.cypher.internal.v3_5.expressions.SemanticDirection
+import org.neo4j.cypher.internal.v3_5.util.attribution.{Id, SequentialIdGen}
+import org.neo4j.cypher.internal.v3_5.util.test_helpers.{CypherFunSuite, WindowsStringSafe}
+import org.neo4j.cypher.internal.v3_5.util.{DummyPosition, LabelId, NonEmptyList, PropertyKeyId}
+import org.neo4j.cypher.internal.v3_5.expressions.{Expression => ASTExpression, LabelName => ASTLabelName, Range => ASTRange, _}
 import org.neo4j.cypher.internal.v3_5.logical.plans
 import org.neo4j.cypher.internal.v3_5.logical.plans._
 import org.scalatest.BeforeAndAfterAll

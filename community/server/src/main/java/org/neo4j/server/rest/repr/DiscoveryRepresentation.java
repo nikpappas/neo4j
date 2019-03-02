@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -38,7 +38,16 @@ public class DiscoveryRepresentation extends MappingRepresentation
     @Override
     protected void serialize( MappingSerializer serializer )
     {
-        uris.forEachRelativeUri(serializer::putRelativeUri);
-        uris.forEachAbsoluteUri( serializer::putAbsoluteUri );
+        uris.forEach( ( key, uri ) ->
+        {
+            if ( uri.isAbsolute() )
+            {
+                serializer.putAbsoluteUri( key, uri );
+            }
+            else
+            {
+                serializer.putRelativeUri( key, uri.toString() );
+            }
+        } );
     }
 }

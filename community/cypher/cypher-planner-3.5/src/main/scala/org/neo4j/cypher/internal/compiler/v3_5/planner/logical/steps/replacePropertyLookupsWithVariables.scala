@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -23,12 +23,12 @@ import org.neo4j.cypher.internal.compiler.v3_5.phases.LogicalPlanState
 import org.neo4j.cypher.internal.compiler.v3_5.phases.PlannerContext
 import org.neo4j.cypher.internal.v3_5.logical.plans.CachedNodeProperty
 import org.neo4j.cypher.internal.v3_5.logical.plans.LogicalPlan
-import org.opencypher.v9_0.ast.semantics.SemanticTable
-import org.opencypher.v9_0.expressions.Property
-import org.opencypher.v9_0.frontend.phases.Transformer
-import org.opencypher.v9_0.util.bottomUp
-import org.opencypher.v9_0.util.Rewriter
-import org.opencypher.v9_0.util.topDown
+import org.neo4j.cypher.internal.v3_5.ast.semantics.SemanticTable
+import org.neo4j.cypher.internal.v3_5.expressions.Property
+import org.neo4j.cypher.internal.v3_5.frontend.phases.Transformer
+import org.neo4j.cypher.internal.v3_5.util.bottomUp
+import org.neo4j.cypher.internal.v3_5.util.Rewriter
+import org.neo4j.cypher.internal.v3_5.util.topDown
 
 /**
   * A logical plan rewriter that also changes the semantic table (thus a Transformer).

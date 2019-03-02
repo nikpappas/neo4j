@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -148,8 +148,8 @@ public class CheckPointerImplTest
         verify( threshold, times( 1 ) ).checkPointHappened( transactionId );
         verify( threshold, never() ).isCheckPointingNeeded( transactionId, INFO );
         verify( logPruning, times( 1 ) ).pruneLogs( logPosition.getLogVersion() );
-        verifyZeroInteractions( tracer );
-        verifyNoMoreInteractions( storageEngine, health, appender, threshold, tracer );
+        verify( tracer, times( 1 ) ).beginCheckPoint();
+        verifyNoMoreInteractions( storageEngine, health, appender, threshold );
     }
 
     @Test
@@ -174,8 +174,8 @@ public class CheckPointerImplTest
         verify( threshold, times( 1 ) ).checkPointHappened( transactionId );
         verify( threshold, never() ).isCheckPointingNeeded( transactionId, INFO );
         verify( logPruning, times( 1 ) ).pruneLogs( logPosition.getLogVersion() );
-        verifyZeroInteractions( tracer );
-        verifyNoMoreInteractions( storageEngine, health, appender, threshold, tracer );
+        verify( tracer, times( 1 ) ).beginCheckPoint();
+        verifyNoMoreInteractions( storageEngine, health, appender, threshold );
     }
 
     @Test

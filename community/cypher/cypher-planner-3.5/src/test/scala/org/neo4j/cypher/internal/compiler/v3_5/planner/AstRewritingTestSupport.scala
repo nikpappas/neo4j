@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -29,17 +29,17 @@ import org.neo4j.cypher.internal.v3_5.logical.plans.GetValue
 import org.neo4j.cypher.internal.v3_5.logical.plans.IndexOrderNone
 import org.neo4j.cypher.internal.v3_5.logical.plans.IndexedProperty
 import org.neo4j.cypher.internal.v3_5.logical.plans.NodeIndexScan
-import org.opencypher.v9_0.ast.AstConstructionTestSupport
-import org.opencypher.v9_0.expressions.LabelToken
-import org.opencypher.v9_0.expressions.PropertyKeyName
-import org.opencypher.v9_0.expressions.PropertyKeyToken
-import org.opencypher.v9_0.parser.ParserFixture
-import org.opencypher.v9_0.util.Cardinality
-import org.opencypher.v9_0.util.LabelId
-import org.opencypher.v9_0.util.PropertyKeyId
-import org.opencypher.v9_0.util.attribution.Id
-import org.opencypher.v9_0.util.attribution.SequentialIdGen
-import org.opencypher.v9_0.util.test_helpers.CypherTestSupport
+import org.neo4j.cypher.internal.v3_5.ast.AstConstructionTestSupport
+import org.neo4j.cypher.internal.v3_5.expressions.LabelToken
+import org.neo4j.cypher.internal.v3_5.expressions.PropertyKeyName
+import org.neo4j.cypher.internal.v3_5.expressions.PropertyKeyToken
+import org.neo4j.cypher.internal.v3_5.parser.ParserFixture
+import org.neo4j.cypher.internal.v3_5.util.Cardinality
+import org.neo4j.cypher.internal.v3_5.util.LabelId
+import org.neo4j.cypher.internal.v3_5.util.PropertyKeyId
+import org.neo4j.cypher.internal.v3_5.util.attribution.Id
+import org.neo4j.cypher.internal.v3_5.util.attribution.SequentialIdGen
+import org.neo4j.cypher.internal.v3_5.util.test_helpers.CypherTestSupport
 
 import scala.language.implicitConversions
 

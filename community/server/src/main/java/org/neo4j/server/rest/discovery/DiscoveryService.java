@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -55,7 +55,8 @@ public class DiscoveryService
     @Produces( MediaType.APPLICATION_JSON )
     public Response getDiscoveryDocument( @Context UriInfo uriInfo )
     {
-        return outputFormat.ok( new DiscoveryRepresentation( uris ) );
+        return outputFormat.ok(
+                new DiscoveryRepresentation( new DiscoverableURIs.Builder( uris ).overrideAbsolutesFromRequest( uriInfo.getBaseUri() ).build() ) );
     }
 
     @GET

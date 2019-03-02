@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -22,10 +22,10 @@ package org.neo4j.cypher.internal.planner.v3_5.spi
 import java.lang.Math.abs
 import java.lang.Math.max
 
-import org.opencypher.v9_0.util.Cardinality
-import org.opencypher.v9_0.util.LabelId
-import org.opencypher.v9_0.util.RelTypeId
-import org.opencypher.v9_0.util.Selectivity
+import org.neo4j.cypher.internal.v3_5.util.Cardinality
+import org.neo4j.cypher.internal.v3_5.util.LabelId
+import org.neo4j.cypher.internal.v3_5.util.RelTypeId
+import org.neo4j.cypher.internal.v3_5.util.Selectivity
 
 import scala.collection.mutable
 

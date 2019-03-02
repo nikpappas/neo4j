@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -24,8 +24,10 @@ import java.util.Collection;
 
 import org.neo4j.internal.kernel.api.InternalIndexState;
 import org.neo4j.kernel.api.exceptions.index.IndexEntryConflictException;
+import org.neo4j.kernel.impl.api.index.PhaseTracker;
 import org.neo4j.kernel.impl.api.index.UpdateMode;
 import org.neo4j.kernel.impl.api.index.updater.SwallowingIndexUpdater;
+import org.neo4j.storageengine.api.NodePropertyAccessor;
 import org.neo4j.storageengine.api.schema.IndexSample;
 import org.neo4j.storageengine.api.schema.StoreIndexDescriptor;
 
@@ -140,6 +142,10 @@ public interface IndexPopulator
 
     IndexPopulator EMPTY = new Adapter();
 
+    default void scanCompleted( PhaseTracker phaseTracker ) throws IndexEntryConflictException
+    {   // no-op by default
+    }
+
     class Adapter implements IndexPopulator
     {
         @Override
@@ -161,6 +167,11 @@ public interface IndexPopulator
         public IndexUpdater newPopulatingUpdater( NodePropertyAccessor accessor )
         {
             return SwallowingIndexUpdater.INSTANCE;
+        }
+
+        @Override
+        public void scanCompleted( PhaseTracker phaseTracker )
+        {
         }
 
         @Override

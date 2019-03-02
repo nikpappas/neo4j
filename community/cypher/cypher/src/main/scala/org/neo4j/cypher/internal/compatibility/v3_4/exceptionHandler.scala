@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -25,7 +25,7 @@ import org.neo4j.cypher.internal.util.v3_4.spi.MapToPublicExceptions
 import org.neo4j.cypher.internal.util.v3_4.{CypherException => InternalCypherExceptionV3_4}
 import org.neo4j.cypher.{exceptionHandler => exceptionHandlerv3_5, _}
 import org.neo4j.values.utils.ValuesException
-import org.opencypher.v9_0.util.{CypherException => InternalCypherExceptionv3_5}
+import org.neo4j.cypher.internal.v3_5.util.{CypherException => InternalCypherExceptionv3_5}
 
 object exceptionHandler extends MapToPublicExceptions[CypherException] {
   override def syntaxException(message: String, query: String, offset: Option[Int], cause: Throwable) = new SyntaxException(message, query, offset, cause)
@@ -85,8 +85,7 @@ object exceptionHandler extends MapToPublicExceptions[CypherException] {
 
   override def periodicCommitInOpenTransactionException(cause: Throwable) = throw new PeriodicCommitInOpenTransactionException(cause)
 
-  // TODO pass along failureMessage as soon as we depend on the next 3.4
-  override def failedIndexException(indexName: String, cause: Throwable): CypherException = throw new FailedIndexException(indexName, null, cause)
+  override def failedIndexException(indexName: String, failureMessage: String, cause: Throwable): CypherException = throw new FailedIndexException(indexName, failureMessage, cause)
 
 }
 

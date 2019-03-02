@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -25,12 +25,12 @@ import org.neo4j.cypher.internal.ir.v3_5.Predicate
 import org.neo4j.cypher.internal.ir.v3_5.QueryProjection
 import org.neo4j.cypher.internal.planner.v3_5.spi.PlanningAttributes.Solveds
 import org.neo4j.cypher.internal.v3_5.logical.plans._
-import org.opencypher.v9_0.expressions._
-import org.opencypher.v9_0.util.Foldable.FoldableAny
-import org.opencypher.v9_0.util.InputPosition
-import org.opencypher.v9_0.util.Rewriter
-import org.opencypher.v9_0.util.attribution.Attributes
-import org.opencypher.v9_0.util.topDown
+import org.neo4j.cypher.internal.v3_5.expressions._
+import org.neo4j.cypher.internal.v3_5.util.Foldable.FoldableAny
+import org.neo4j.cypher.internal.v3_5.util.InputPosition
+import org.neo4j.cypher.internal.v3_5.util.Rewriter
+import org.neo4j.cypher.internal.v3_5.util.attribution.Attributes
+import org.neo4j.cypher.internal.v3_5.util.topDown
 
 /**
   * This updates index leaf plans such that they have the right GetValueFromIndexBehavior.

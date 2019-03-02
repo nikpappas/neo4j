@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -35,8 +35,8 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-import org.opencypher.v9_0.util.CypherTypeException;
-import org.opencypher.v9_0.util.IncomparableValuesException;
+import org.neo4j.cypher.internal.v3_5.util.CypherTypeException;
+import org.neo4j.cypher.internal.v3_5.util.IncomparableValuesException;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;

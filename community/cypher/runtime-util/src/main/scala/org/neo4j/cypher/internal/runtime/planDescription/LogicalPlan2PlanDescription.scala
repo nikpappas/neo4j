@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -23,10 +23,10 @@ import org.neo4j.cypher.internal.planner.v3_5.spi.PlanningAttributes.{Cardinalit
 import org.neo4j.cypher.internal.runtime.planDescription.InternalPlanDescription.Arguments._
 import org.neo4j.cypher.internal.v3_5.logical.plans
 import org.neo4j.cypher.internal.v3_5.logical.plans._
-import org.opencypher.v9_0.expressions.functions.Point
-import org.opencypher.v9_0.expressions.{FunctionInvocation, FunctionName, LabelToken, MapExpression, Namespace, PropertyKeyToken, Expression => ASTExpression}
-import org.opencypher.v9_0.frontend.PlannerName
-import org.opencypher.v9_0.util.InternalException
+import org.neo4j.cypher.internal.v3_5.expressions.functions.Point
+import org.neo4j.cypher.internal.v3_5.expressions.{FunctionInvocation, FunctionName, LabelToken, MapExpression, Namespace, PropertyKeyToken, Expression => ASTExpression}
+import org.neo4j.cypher.internal.v3_5.frontend.PlannerName
+import org.neo4j.cypher.internal.v3_5.util.InternalException
 
 object LogicalPlan2PlanDescription {
 

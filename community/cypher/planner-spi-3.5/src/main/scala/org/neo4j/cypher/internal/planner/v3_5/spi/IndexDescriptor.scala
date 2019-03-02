@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -21,8 +21,8 @@ package org.neo4j.cypher.internal.planner.v3_5.spi
 
 import org.neo4j.cypher.internal.planner.v3_5.spi.IndexDescriptor.{OrderCapability, ValueCapability}
 import org.neo4j.cypher.internal.v3_5.logical.plans.{DoNotGetValue, GetValueFromIndexBehavior}
-import org.opencypher.v9_0.util.symbols.CypherType
-import org.opencypher.v9_0.util.{LabelId, PropertyKeyId}
+import org.neo4j.cypher.internal.v3_5.util.symbols.CypherType
+import org.neo4j.cypher.internal.v3_5.util.{LabelId, PropertyKeyId}
 
 sealed trait IndexLimitation
 case object SlowContains extends IndexLimitation

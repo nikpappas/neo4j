@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018 "Neo4j,"
+ * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -21,13 +21,13 @@ package org.neo4j.cypher.internal.compiler.v3_5.planner
 
 import org.neo4j.cypher.internal.compiler.v3_5.{MissingLabelNotification, MissingPropertyNameNotification, MissingRelTypeNotification}
 import org.neo4j.cypher.internal.compiler.v3_5.phases.LogicalPlanState
-import org.opencypher.v9_0.expressions.{LabelName, Property, PropertyKeyName, RelTypeName}
-import org.opencypher.v9_0.frontend.phases.CompilationPhaseTracer.CompilationPhase.LOGICAL_PLANNING
-import org.opencypher.v9_0.frontend.phases.{BaseContext, VisitorPhase}
-import org.opencypher.v9_0.util.InternalNotification
+import org.neo4j.cypher.internal.v3_5.expressions.{LabelName, Property, PropertyKeyName, RelTypeName}
+import org.neo4j.cypher.internal.v3_5.frontend.phases.CompilationPhaseTracer.CompilationPhase.LOGICAL_PLANNING
+import org.neo4j.cypher.internal.v3_5.frontend.phases.{BaseContext, VisitorPhase}
+import org.neo4j.cypher.internal.v3_5.util.InternalNotification
 
 import org.neo4j.values.storable.TemporalValue.TemporalFields
-import org.neo4j.values.storable.{DurationFields, PointFields, TemporalValue}
+import org.neo4j.values.storable.{DurationFields, PointFields}
 
 import scala.collection.JavaConverters._
 
@@ -36,7 +36,7 @@ object CheckForUnresolvedTokens extends VisitorPhase[BaseContext, LogicalPlanSta
   private val specialPropertyKey: Set[String] =
     (TemporalFields.allFields().asScala ++
       DurationFields.values().map(_.propertyKey) ++
-      PointFields.values().map(_.propertyKey)).toSet
+      PointFields.values().map(_.propertyKey)).map(_.toLowerCase).toSet
 
   override def visit(value: LogicalPlanState, context: BaseContext): Unit = {
     val table = value.semanticTable()
@@ -44,14 +44,14 @@ object CheckForUnresolvedTokens extends VisitorPhase[BaseContext, LogicalPlanSta
     def isEmptyRelType(relType: String) = !table.resolvedRelTypeNames.contains(relType)
     def isEmptyPropertyName(name: String) = !table.resolvedPropertyKeyNames.contains(name)
 
-    val notifications = value.statement.treeFold(Seq.empty[InternalNotification]) {
+    val notifications = value.statement().treeFold(Seq.empty[InternalNotification]) {
       case label@LabelName(name) if isEmptyLabel(name) => acc =>
         (acc :+ MissingLabelNotification(label.position, name), Some(identity))
 
       case rel@RelTypeName(name) if isEmptyRelType(name) => acc =>
         (acc :+ MissingRelTypeNotification(rel.position, name), Some(identity))
 
-      case Property(_, prop@PropertyKeyName(name)) if !specialPropertyKey(name) && isEmptyPropertyName(name) => acc =>
+      case Property(_, prop@PropertyKeyName(name)) if !specialPropertyKey(name.toLowerCase) && isEmptyPropertyName(name) => acc =>
         (acc :+ MissingPropertyNameNotification(prop.position, name), Some(identity))
     }
 
